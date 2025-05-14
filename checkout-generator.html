@@ -141,6 +141,7 @@
             display: flex;
             align-items: center;
             gap: 1rem;
+            flex-wrap: wrap;
         }
 
         .color-option {
@@ -176,6 +177,38 @@
             max-height: 200px;
             margin-top: 1rem;
             display: none;
+        }
+
+        /* Crypto Selection */
+        .crypto-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        .crypto-option {
+            display: flex;
+            align-items: center;
+            padding: 0.75rem;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            cursor: pointer;
+        }
+
+        .crypto-option:hover {
+            background: rgba(255,255,255,0.05);
+        }
+
+        .crypto-option.selected {
+            background: rgba(255,255,255,0.1);
+            border-color: var(--secondary);
+        }
+
+        .crypto-icon {
+            width: 24px;
+            height: 24px;
+            margin-right: 0.75rem;
         }
 
         /* Generated Preview */
@@ -274,7 +307,7 @@
                     <div class="form-row">
                         <div class="form-group">
                             <label class="form-label">Product Name</label>
-                            <input type="text" class="form-control" id="productName">
+                            <input type="text" class="form-control" id="productName" required>
                         </div>
                         <div class="form-group">
                             <label class="form-label">Product Description</label>
@@ -297,39 +330,27 @@
                     <div class="form-row">
                         <div class="form-group">
                             <label class="form-label">Amount</label>
-                            <input type="number" class="form-control" id="productAmount" step="0.00000001">
+                            <input type="number" class="form-control" id="productAmount" step="0.00000001" required>
                         </div>
                         <div class="form-group">
                             <label class="form-label">Currency</label>
                             <select class="form-control" id="currencySelect">
-                                <option value="btc">Bitcoin (BTC)</option>
-                                <option value="xmr">Monero (XMR)</option>
-                                <option value="eth">Ethereum (ETH)</option>
-                                <option value="sol">Solana (SOL)</option>
-                                <option value="usdt">Tether (USDT)</option>
-                                <option value="usdc">USD Coin (USDC)</option>
+                                <option value="USD">US Dollar (USD)</option>
+                                <option value="EUR">Euro (EUR)</option>
+                                <option value="GBP">British Pound (GBP)</option>
                             </select>
                         </div>
                     </div>
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label class="form-label">Your Payout Address (BTC)</label>
-                            <input type="text" class="form-control" id="btcPayoutAddress" placeholder="bc1q...">
-                        </div>
-                        <div class="form-group">
-                            <label class="form-label">Your Payout Address (XMR)</label>
-                            <input type="text" class="form-control" id="xmrPayoutAddress" placeholder="4...">
+                    
+                    <div class="form-group">
+                        <label class="form-label">Accepted Cryptocurrencies</label>
+                        <div class="crypto-grid" id="cryptoGrid">
+                            <!-- Crypto options will be added here by JavaScript -->
                         </div>
                     </div>
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label class="form-label">Your Payout Address (ETH)</label>
-                            <input type="text" class="form-control" id="ethPayoutAddress" placeholder="0x...">
-                        </div>
-                        <div class="form-group">
-                            <label class="form-label">Your Payout Address (SOL)</label>
-                            <input type="text" class="form-control" id="solPayoutAddress" placeholder="So1...">
-                        </div>
+                    
+                    <div id="cryptoAddresses">
+                        <!-- Crypto address inputs will be added here by JavaScript -->
                     </div>
                 </div>
 
@@ -437,10 +458,86 @@
     </div>
 
     <script>
+        // Crypto options data
+        const cryptoOptions = [
+            { id: 'btc', name: 'Bitcoin', symbol: 'BTC', icon: 'https://cryptologos.cc/logos/bitcoin-btc-logo.png' },
+            { id: 'eth', name: 'Ethereum', symbol: 'ETH', icon: 'https://cryptologos.cc/logos/ethereum-eth-logo.png' },
+            { id: 'xmr', name: 'Monero', symbol: 'XMR', icon: 'https://cryptologos.cc/logos/monero-xmr-logo.png' },
+            { id: 'sol', name: 'Solana', symbol: 'SOL', icon: 'https://cryptologos.cc/logos/solana-sol-logo.png' },
+            { id: 'usdt', name: 'Tether', symbol: 'USDT', icon: 'https://cryptologos.cc/logos/tether-usdt-logo.png' },
+            { id: 'usdc', name: 'USD Coin', symbol: 'USDC', icon: 'https://cryptologos.cc/logos/usd-coin-usdc-logo.png' },
+            { id: 'ltc', name: 'Litecoin', symbol: 'LTC', icon: 'https://cryptologos.cc/logos/litecoin-ltc-logo.png' },
+            { id: 'doge', name: 'Dogecoin', symbol: 'DOGE', icon: 'https://cryptologos.cc/logos/dogecoin-doge-logo.png' }
+        ];
+
         // Check authentication
         const currentUser = JSON.parse(localStorage.getItem('shroud_currentUser'));
         if (!currentUser) {
             window.location.href = 'auth.html#login';
+        }
+
+        // Initialize crypto options
+        function initializeCryptoOptions() {
+            const cryptoGrid = document.getElementById('cryptoGrid');
+            const cryptoAddresses = document.getElementById('cryptoAddresses');
+            
+            cryptoOptions.forEach(crypto => {
+                // Add to crypto selection grid
+                const option = document.createElement('div');
+                option.className = 'crypto-option';
+                option.innerHTML = `
+                    <img src="${crypto.icon}" class="crypto-icon" alt="${crypto.name}">
+                    <span>${crypto.symbol}</span>
+                `;
+                option.onclick = function() {
+                    this.classList.toggle('selected');
+                    updateAddressInputs();
+                };
+                cryptoGrid.appendChild(option);
+                
+                // Add address input (hidden by default)
+                const addressInput = document.createElement('div');
+                addressInput.className = 'form-group';
+                addressInput.id = `${crypto.id}-address-group`;
+                addressInput.style.display = 'none';
+                addressInput.innerHTML = `
+                    <label class="form-label">Your ${crypto.symbol} Payout Address</label>
+                    <input type="text" class="form-control" id="${crypto.id}PayoutAddress" 
+                           placeholder="${getPlaceholderForCrypto(crypto.id)}">
+                `;
+                cryptoAddresses.appendChild(addressInput);
+            });
+        }
+
+        function getPlaceholderForCrypto(cryptoId) {
+            const prefixes = {
+                btc: 'bc1q...',
+                eth: '0x...',
+                xmr: '4...',
+                sol: 'So1...',
+                usdt: '0x... or other format',
+                usdc: '0x... or other format',
+                ltc: 'L... or M...',
+                doge: 'D...'
+            };
+            return prefixes[cryptoId] || 'Enter address';
+        }
+
+        // Update address inputs based on selected cryptos
+        function updateAddressInputs() {
+            const selectedCryptos = document.querySelectorAll('.crypto-option.selected');
+            
+            // Hide all address inputs first
+            cryptoOptions.forEach(crypto => {
+                document.getElementById(`${crypto.id}-address-group`).style.display = 'none';
+            });
+            
+            // Show inputs for selected cryptos
+            selectedCryptos.forEach(option => {
+                const cryptoId = cryptoOptions.find(c => 
+                    c.symbol === option.textContent.trim()).id;
+                document.getElementById(`${cryptoId}-address-group`).style.display = 'block';
+            });
         }
 
         // Selected colors
@@ -504,34 +601,33 @@
             // Validate required fields
             const productName = document.getElementById('productName').value;
             const amount = document.getElementById('productAmount').value;
-            const currency = document.getElementById('currencySelect').value;
             
             if (!productName || !amount) {
                 alert('Please fill in all required fields');
                 return;
             }
 
-            // Get payout address for selected currency
-            let payoutAddress;
-            switch(currency) {
-                case 'btc':
-                    payoutAddress = document.getElementById('btcPayoutAddress').value;
-                    break;
-                case 'xmr':
-                    payoutAddress = document.getElementById('xmrPayoutAddress').value;
-                    break;
-                case 'eth':
-                    payoutAddress = document.getElementById('ethPayoutAddress').value;
-                    break;
-                case 'sol':
-                    payoutAddress = document.getElementById('solPayoutAddress').value;
-                    break;
-                default:
-                    payoutAddress = '';
-            }
+            // Get selected cryptos
+            const selectedCryptos = [];
+            const payoutAddresses = {};
+            const selectedOptions = document.querySelectorAll('.crypto-option.selected');
+            
+            selectedOptions.forEach(option => {
+                const cryptoId = cryptoOptions.find(c => 
+                    c.symbol === option.textContent.trim()).id;
+                const address = document.getElementById(`${cryptoId}PayoutAddress`).value;
+                
+                if (!address) {
+                    alert(`Please enter your ${cryptoId.toUpperCase()} payout address`);
+                    return;
+                }
+                
+                selectedCryptos.push(cryptoId);
+                payoutAddresses[cryptoId] = address;
+            });
 
-            if (!payoutAddress) {
-                alert(`Please enter your ${currency.toUpperCase()} payout address`);
+            if (selectedCryptos.length === 0) {
+                alert('Please select at least one cryptocurrency');
                 return;
             }
 
@@ -541,15 +637,11 @@
                     name: productName,
                     description: document.getElementById('productDescription').value,
                     amount: parseFloat(amount),
-                    currency: currency,
+                    currency: document.getElementById('currencySelect').value,
                     image: document.getElementById('imagePreview').src || ''
                 },
-                payoutAddresses: {
-                    btc: document.getElementById('btcPayoutAddress').value,
-                    xmr: document.getElementById('xmrPayoutAddress').value,
-                    eth: document.getElementById('ethPayoutAddress').value,
-                    sol: document.getElementById('solPayoutAddress').value
-                },
+                acceptedCryptos: selectedCryptos,
+                payoutAddresses: payoutAddresses,
                 customerInfo: {
                     requireEmail: document.getElementById('requireEmail').value,
                     requireShipping: document.getElementById('requireShipping').value,
@@ -561,11 +653,13 @@
                     primaryColor: primaryColor,
                     backgroundColor: backgroundColor,
                     logo: document.getElementById('logoPreview').src || ''
-                }
+                },
+                createdAt: new Date().toISOString(),
+                merchant: currentUser.email
             };
 
             // Generate a unique ID for this checkout
-            const checkoutId = 'ch_' + Math.random().toString(36).substr(2, 9);
+            const checkoutId = 'ch_' + Math.random().toString(36).substr(2, 16);
             
             // Save to localStorage (in a real app, this would go to a backend)
             let checkouts = JSON.parse(localStorage.getItem('shroud_checkouts')) || {};
@@ -613,12 +707,21 @@
             document.getElementById('imagePreview').style.display = 'none';
             document.getElementById('logoPreview').style.display = 'none';
             document.getElementById('previewContainer').style.display = 'none';
+            document.querySelectorAll('.crypto-option').forEach(option => {
+                option.classList.remove('selected');
+            });
+            updateAddressInputs();
         }
 
         function logout() {
             localStorage.removeItem('shroud_currentUser');
             window.location.href = 'auth.html#login';
         }
+
+        // Initialize the page
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeCryptoOptions();
+        });
     </script>
 </body>
 </html>
