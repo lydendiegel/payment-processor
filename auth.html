@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SHROUD - Authentication</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary: #000;
+            --secondary: #fff;
+            --accent: #10ff80;
+            --error: #ff4d4f;
+            --transition: all 0.3s ease;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Courier New', monospace;
+        }
+
+        body {
+            background: var(--primary);
+            color: var(--secondary);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .auth-container {
+            width: 100%;
+            max-width: 400px;
+            padding: 2rem;
+            border: 1px solid #333;
+        }
+
+        .auth-header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .logo {
+            font-size: 1.8rem;
+            font-weight: bold;
+            letter-spacing: -1px;
+            margin-bottom: 1rem;
+        }
+
+        .auth-tabs {
+            display: flex;
+            margin-bottom: 2rem;
+            border-bottom: 1px solid #333;
+        }
+
+        .auth-tab {
+            padding: 1rem;
+            cursor: pointer;
+            flex: 1;
+            text-align: center;
+            transition: var(--transition);
+        }
+
+        .auth-tab.active {
+            border-bottom: 2px solid var(--accent);
+        }
+
+        .auth-form {
+            display: none;
+        }
+
+        .auth-form.active {
+            display: block;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: #aaa;
+        }
+
+        input {
+            width: 100%;
+            padding: 0.8rem;
+            background: #111;
+            border: 1px solid #333;
+            color: var(--secondary);
+            font-size: 1rem;
+        }
+
+        .error-message {
+            color: var(--error);
+            font-size: 0.9rem;
+            margin-top: 0.5rem;
+            display: none;
+        }
+
+        button {
+            width: 100%;
+            padding: 1rem;
+            background: var(--secondary);
+            color: var(--primary);
+            border: none;
+            font-weight: bold;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        button:hover {
+            opacity: 0.9;
+        }
+
+        .terminal-effect {
+            text-shadow: 0 0 8px rgba(255,255,255,0.1);
+        }
+    </style>
+</head>
+<body>
+    <div class="auth-container">
+        <div class="auth-header">
+            <div class="logo terminal-effect">SHROUD</div>
+            <p>Private cryptocurrency payments</p>
+        </div>
+
+        <div class="auth-tabs">
+            <div class="auth-tab active" onclick="showForm('login')">Login</div>
+            <div class="auth-tab" onclick="showForm('signup')">Sign Up</div>
+        </div>
+
+        <!-- Login Form -->
+        <div id="loginForm" class="auth-form active">
+            <div class="form-group">
+                <label for="loginEmail">Email</label>
+                <input type="email" id="loginEmail" required>
+            </div>
+            <div class="form-group">
+                <label for="loginPassword">Password</label>
+                <input type="password" id="loginPassword" required>
+                <div class="error-message" id="loginError"></div>
+            </div>
+            <button onclick="login()">Access Dashboard</button>
+        </div>
+
+        <!-- Signup Form -->
+        <div id="signupForm" class="auth-form">
+            <div class="form-group">
+                <label for="signupEmail">Email</label>
+                <input type="email" id="signupEmail" required>
+            </div>
+            <div class="form-group">
+                <label for="signupPassword">Password</label>
+                <input type="password" id="signupPassword" required>
+            </div>
+            <div class="form-group">
+                <label for="confirmPassword">Confirm Password</label>
+                <input type="password" id="confirmPassword" required>
+                <div class="error-message" id="signupError"></div>
+            </div>
+            <button onclick="signup()">Create Account</button>
+        </div>
+    </div>
+
+    <script>
+        // User database (in production this would be a backend)
+        let users = JSON.parse(localStorage.getItem('shroud_users')) || [];
+
+        // Show selected form
+        function showForm(formType) {
+            document.querySelectorAll('.auth-tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            document.querySelectorAll('.auth-form').forEach(form => {
+                form.classList.remove('active');
+            });
+
+            document.querySelector(`.auth-tab:nth-child(${formType === 'login' ? 1 : 2})`).classList.add('active');
+            document.getElementById(`${formType}Form`).classList.add('active');
+        }
+
+        // Signup function
+        function signup() {
+            const email = document.getElementById('signupEmail').value;
+            const password = document.getElementById('signupPassword').value;
+            const confirmPassword = document.getElementById('confirmPassword').value;
+            const errorElement = document.getElementById('signupError');
+
+            // Reset error
+            errorElement.style.display = 'none';
+
+            // Validate
+            if (!email || !password || !confirmPassword) {
+                showError(errorElement, 'All fields are required');
+                return;
+            }
+
+            if (password !== confirmPassword) {
+                showError(errorElement, 'Passwords do not match');
+                return;
+            }
+
+            if (password.length < 8) {
+                showError(errorElement, 'Password must be at least 8 characters');
+                return;
+            }
+
+            // Check if user exists
+            if (users.some(user => user.email === email)) {
+                showError(errorElement, 'Email already registered');
+                return;
+            }
+
+            // Create user
+            const newUser = {
+                email,
+                password, // In production, you would hash this
+                createdAt: new Date().toISOString()
+            };
+
+            users.push(newUser);
+            localStorage.setItem('shroud_users', JSON.stringify(users));
+
+            // Login the user
+            localStorage.setItem('shroud_currentUser', JSON.stringify(newUser));
+            window.location.href = '/dashboard.html';
+        }
+
+        // Login function
+        function login() {
+            const email = document.getElementById('loginEmail').value;
+            const password = document.getElementById('loginPassword').value;
+            const errorElement = document.getElementById('loginError');
+
+            // Reset error
+            errorElement.style.display = 'none';
+
+            // Validate
+            if (!email || !password) {
+                showError(errorElement, 'Email and password required');
+                return;
+            }
+
+            // Find user
+            const user = users.find(user => user.email === email);
+
+            if (!user || user.password !== password) {
+                showError(errorElement, 'Invalid email or password');
+                return;
+            }
+
+            // Login the user
+            localStorage.setItem('shroud_currentUser', JSON.stringify(user));
+            window.location.href = '/dashboard.html';
+        }
+
+        // Helper function to show errors
+        function showError(element, message) {
+            element.textContent = message;
+            element.style.display = 'block';
+        }
+
+        // Check if user is already logged in
+        if (localStorage.getItem('shroud_currentUser')) {
+            window.location.href = '/dashboard.html';
+        }
+    </script>
+</body>
+</html>
