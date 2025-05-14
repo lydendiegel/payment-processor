@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Merchant Dashboard - SHROUD</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/qrcodejs/qrcode.min.js"></script>
+    <style>
+        :root {
+            --primary: #0a0a0a;
+            --secondary: #fff;
+            --accent: #10ff80;
+            --background: #111;
+            --success: #00d4a1;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+        }
+
+        body {
+            background: var(--primary);
+            color: var(--secondary);
+            min-height: 100vh;
+        }
+
+        .dashboard-container {
+            display: grid;
+            grid-template-columns: 250px 1fr;
+            min-height: 100vh;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            background: var(--background);
+            padding: 2rem;
+            border-right: 1px solid #333;
+        }
+
+        .sidebar-header {
+            margin-bottom: 2rem;
+        }
+
+        .sidebar-nav {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .nav-item {
+            padding: 0.8rem;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .nav-item.active {
+            background: rgba(255,255,255,0.1);
+        }
+
+        /* Main Content */
+        .main-content {
+            padding: 2rem;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+        }
+
+        .stats-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 3rem;
+        }
+
+        .stat-card {
+            background: var(--background);
+            padding: 1.5rem;
+            border-radius: 8px;
+            border: 1px solid #333;
+        }
+
+        .stat-value {
+            font-size: 2rem;
+            font-weight: bold;
+            color: var(--accent);
+        }
+
+        /* Checkout Generator */
+        .generator-form {
+            background: var(--background);
+            padding: 2rem;
+            border-radius: 8px;
+            margin-bottom: 2rem;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        input, select {
+            width: 100%;
+            padding: 0.8rem;
+            background: #1a1a1a;
+            border: 1px solid #333;
+            color: var(--secondary);
+            border-radius: 4px;
+        }
+
+        .generated-link {
+            background: #1a1a1a;
+            padding: 1rem;
+            border-radius: 4px;
+            margin-top: 1rem;
+            word-break: break-all;
+        }
+
+        .qr-code {
+            margin: 1rem 0;
+            padding: 1rem;
+            background: white;
+            border-radius: 4px;
+            width: 150px;
+        }
+
+        /* Customers Table */
+        .customers-table {
+            width: 100%;
+            border-collapse: collapse;
+            background: var(--background);
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        .customers-table th,
+        .customers-table td {
+            padding: 1rem;
+            text-align: left;
+            border-bottom: 1px solid #333;
+        }
+
+        .customers-table th {
+            background: #1a1a1a;
+        }
+
+        .logout-btn {
+            background: var(--accent);
+            color: var(--primary);
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <div class="dashboard-container">
+        <!-- Sidebar -->
+        <div class="sidebar">
+            <div class="sidebar-header">
+                <h2>SHROUD</h2>
+                <p>Merchant Dashboard</p>
+            </div>
+            <nav class="sidebar-nav">
+                <div class="nav-item active">Checkout Generator</div>
+                <div class="nav-item">Customers</div>
+                <div class="nav-item">Analytics</div>
+                <div class="nav-item">Settings</div>
+            </nav>
+        </div>
+
+        <!-- Main Content -->
+        <div class="main-content">
+            <div class="header">
+                <h1>Checkout Generator</h1>
+                <button class="logout-btn" onclick="logout()">Log Out</button>
+            </div>
+
+            <!-- Stats -->
+            <div class="stats-container">
+                <div class="stat-card">
+                    <div class="stat-label">Today's Earnings</div>
+                    <div class="stat-value">$0.00</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Total Customers</div>
+                    <div class="stat-value">0</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Avg. Payment</div>
+                    <div class="stat-value">$0.00</div>
+                </div>
+            </div>
+
+            <!-- Checkout Generator -->
+            <div class="generator-form">
+                <div class="form-group">
+                    <label>Product Name</label>
+                    <input type="text" id="productName">
+                </div>
+                <div class="form-group">
+                    <label>Amount</label>
+                    <input type="number" id="productAmount">
+                </div>
+                <div class="form-group">
+                    <label>Currency</label>
+                    <select id="currencySelect">
+                        <option value="btc">Bitcoin (BTC)</option>
+                        <option value="xmr">Monero (XMR)</option>
+                        <option value="eth">Ethereum (ETH)</option>
+                        <option value="sol">Solana (SOL)</option>
+                    </select>
+                </div>
+                <button class="logout-btn" onclick="generateCheckout()">Generate Payment Link</button>
+                <div class="generated-link" id="generatedLink"></div>
+                <div class="qr-code" id="qrCode"></div>
+            </div>
+
+            <!-- Customers Table -->
+            <h2 style="margin: 2rem 0">Recent Customers</h2>
+            <table class="customers-table">
+                <thead>
+                    <tr>
+                        <th>Email</th>
+                        <th>Contact Method</th>
+                        <th>Amount</th>
+                        <th>Date</th>
+                    </tr>
+                </thead>
+                <tbody id="customersList">
+                    <!-- Customers will be populated here -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        // Check authentication
+        const currentUser = JSON.parse(localStorage.getItem('shroud_currentUser'));
+        if (!currentUser) {
+            window.location.href = 'auth.html#login';
+        }
+
+        // Demo data
+        let customers = JSON.parse(localStorage.getItem('shroud_customers')) || [];
+        let payments = JSON.parse(localStorage.getItem('shroud_payments')) || [];
+
+        function generateCheckout() {
+            const product = document.getElementById('productName').value;
+            const amount = document.getElementById('productAmount').value;
+            const currency = document.getElementById('currencySelect').value;
+
+            // Generate payment address (demo)
+            const address = generateAddress(currency);
+            
+            // Create checkout link
+            const checkoutLink = `${window.location.origin}/checkout.html?product=${encodeURIComponent(product)}&amount=${amount}&currency=${currency}&address=${address}`;
+            
+            // Display generated link
+            const linkElement = document.getElementById('generatedLink');
+            linkElement.innerHTML = `
+                Payment Link: <a href="${checkoutLink}" target="_blank">${checkoutLink}</a>
+            `;
+
+            // Generate QR Code
+            const qrElement = document.getElementById('qrCode');
+            qrElement.innerHTML = '';
+            new QRCode(qrElement, {
+                text: `${currency}:${address}?amount=${amount}`,
+                width: 128,
+                height: 128
+            });
+        }
+
+        function generateAddress(currency) {
+            const prefixes = {
+                btc: 'bc1q',
+                eth: '0x',
+                xmr: '4',
+                sol: 'So1'
+            };
+            return prefixes[currency] + Math.random().toString(36).substr(2, 10);
+        }
+
+        function logout() {
+            localStorage.removeItem('shroud_currentUser');
+            window.location.href = 'auth.html#login';
+        }
+
+        // Update stats
+        function updateStats() {
+            document.querySelector('[data-stat="earnings"]').textContent = 
+                payments.reduce((sum, p) => sum + p.amount, 0).toFixed(2);
+            document.querySelector('[data-stat="customers"]').textContent = customers.length;
+            document.querySelector('[data-stat="average"]').textContent = 
+                (payments.reduce((sum, p) => sum + p.amount, 0) / (payments.length || 1)).toFixed(2);
+        }
+
+        // Simulate payment detection
+        setInterval(() => {
+            // In real implementation, check blockchain for payments
+            if (Math.random() > 0.8) { // 20% chance of new payment
+                const newCustomer = {
+                    email: `user${customers.length + 1}@example.com`,
+                    contact: `@user${customers.length + 1}`,
+                    amount: (Math.random() * 0.5 + 0.1).toFixed(4),
+                    date: new Date().toLocaleDateString()
+                };
+                
+                customers.push(newCustomer);
+                payments.push({ amount: parseFloat(newCustomer.amount) });
+                
+                localStorage.setItem('shroud_customers', JSON.stringify(customers));
+                localStorage.setItem('shroud_payments', JSON.stringify(payments));
+                
+                // Update table
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${newCustomer.email}</td>
+                    <td>${newCustomer.contact}</td>
+                    <td>${newCustomer.amount}</td>
+                    <td>${newCustomer.date}</td>
+                `;
+                document.getElementById('customersList').prepend(row);
+                
+                updateStats();
+            }
+        }, 5000); // Check every 5 seconds
+
+        // Initial load
+        customers.forEach(customer => {
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td>${customer.email}</td>
+                <td>${customer.contact}</td>
+                <td>${customer.amount}</td>
+                <td>${customer.date}</td>
+            `;
+            document.getElementById('customersList').appendChild(row);
+        });
+
+        updateStats();
+    </script>
+</body>
+</html>
