@@ -18,7 +18,7 @@
             margin: 0;
             padding: 0;
             box-sizing: border-box;
-            font-family: 'Courier New', monospace;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
         }
 
         body {
@@ -77,6 +77,7 @@
 
         .form-group {
             margin-bottom: 1.5rem;
+            position: relative;
         }
 
         label {
@@ -92,6 +93,16 @@
             border: 1px solid #333;
             color: var(--secondary);
             font-size: 1rem;
+            padding-right: 35px;
+        }
+
+        .password-toggle {
+            position: absolute;
+            right: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            cursor: pointer;
+            color: #666;
         }
 
         .error-message {
@@ -99,6 +110,38 @@
             font-size: 0.9rem;
             margin-top: 0.5rem;
             display: none;
+        }
+
+        .success-message {
+            color: var(--accent);
+            text-align: center;
+            margin: 1rem 0;
+            display: none;
+        }
+
+        .password-rules {
+            font-size: 0.8rem;
+            color: #666;
+            margin: 0.5rem 0;
+        }
+
+        .requirement {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin: 0.3rem 0;
+        }
+
+        .requirement i {
+            font-size: 0.8rem;
+        }
+
+        .valid {
+            color: var(--accent);
+        }
+
+        .invalid {
+            color: var(--error);
         }
 
         button {
@@ -117,11 +160,9 @@
             opacity: 0.9;
         }
 
-        .success-message {
-            color: var(--accent);
-            text-align: center;
-            margin: 1rem 0;
-            display: none;
+        button:disabled {
+            opacity: 0.7;
+            cursor: not-allowed;
         }
     </style>
 </head>
@@ -137,13 +178,13 @@
             <div class="auth-tab" onclick="showForm('signup')">Sign Up</div>
         </div>
 
-        <!-- Success Message (hidden by default) -->
+        <!-- Success Message -->
         <div class="success-message" id="successMessage">
-            Account created successfully! Please login.
+            <i class="fas fa-check-circle"></i> Account created successfully!
         </div>
 
         <!-- Login Form -->
-        <div id="loginForm" class="auth-form active">
+        <form id="loginForm" class="auth-form active" onsubmit="event.preventDefault(); login()">
             <div class="form-group">
                 <label for="loginEmail">Email</label>
                 <input type="email" id="loginEmail" required>
@@ -151,39 +192,62 @@
             <div class="form-group">
                 <label for="loginPassword">Password</label>
                 <input type="password" id="loginPassword" required>
+                <i class="fas fa-eye password-toggle" onclick="togglePassword('loginPassword')"></i>
                 <div class="error-message" id="loginError"></div>
             </div>
-            <button onclick="login()">Access Dashboard</button>
-        </div>
+            <button type="submit">Access Dashboard</button>
+        </form>
 
         <!-- Signup Form -->
-        <div id="signupForm" class="auth-form">
+        <form id="signupForm" class="auth-form" onsubmit="event.preventDefault(); signup()">
             <div class="form-group">
                 <label for="signupEmail">Email</label>
                 <input type="email" id="signupEmail" required>
             </div>
             <div class="form-group">
                 <label for="signupPassword">Password</label>
-                <input type="password" id="signupPassword" required>
+                <input type="password" id="signupPassword" required 
+                       oninput="validatePassword(this.value)">
+                <i class="fas fa-eye password-toggle" onclick="togglePassword('signupPassword')"></i>
+                <div class="password-rules">
+                    <div class="requirement" id="lengthReq">
+                        <i class="fas fa-check"></i>
+                        <span>8+ characters</span>
+                    </div>
+                    <div class="requirement" id="upperReq">
+                        <i class="fas fa-check"></i>
+                        <span>1 uppercase letter</span>
+                    </div>
+                    <div class="requirement" id="specialReq">
+                        <i class="fas fa-check"></i>
+                        <span>1 number or special character</span>
+                    </div>
+                </div>
             </div>
             <div class="form-group">
                 <label for="confirmPassword">Confirm Password</label>
-                <input type="password" id="confirmPassword" required>
+                <input type="password" id="confirmPassword" required 
+                       oninput="checkPasswordMatch()">
+                <i class="fas fa-eye password-toggle" onclick="togglePassword('confirmPassword')"></i>
                 <div class="error-message" id="signupError"></div>
             </div>
-            <button onclick="signup()">Create Account</button>
-        </div>
+            <button type="submit" id="signupButton" disabled>Create Account</button>
+        </form>
     </div>
 
     <script>
         // User database (in production this would be a backend)
         let users = JSON.parse(localStorage.getItem('shroud_users')) || [];
 
+        // Password validation state
+        let passwordValid = {
+            length: false,
+            upper: false,
+            special: false
+        };
+
         // Show selected form
         function showForm(formType) {
-            // Hide success message when switching tabs
-            document.getElementById('successMessage').style.display = 'none';
-            
             document.querySelectorAll('.auth-tab').forEach(tab => {
                 tab.classList.remove('active');
             });
@@ -193,6 +257,61 @@
 
             document.querySelector(`.auth-tab:nth-child(${formType === 'login' ? 1 : 2})`).classList.add('active');
             document.getElementById(`${formType}Form`).classList.add('active');
+            document.getElementById('successMessage').style.display = 'none';
+        }
+
+        // Toggle password visibility
+        function togglePassword(fieldId) {
+            const field = document.getElementById(fieldId);
+            const icon = field.parentElement.querySelector('.password-toggle');
+            if (field.type === 'password') {
+                field.type = 'text';
+                icon.classList.replace('fa-eye', 'fa-eye-slash');
+            } else {
+                field.type = 'password';
+                icon.classList.replace('fa-eye-slash', 'fa-eye');
+            }
+        }
+
+        // Password validation
+        function validatePassword(password) {
+            // Check requirements
+            passwordValid.length = password.length >= 8;
+            passwordValid.upper = /[A-Z]/.test(password);
+            passwordValid.special = /[0-9!@#$%^&*]/.test(password);
+
+            // Update visual indicators
+            updateRequirement('lengthReq', passwordValid.length);
+            updateRequirement('upperReq', passwordValid.upper);
+            updateRequirement('specialReq', passwordValid.special);
+
+            // Enable/disable signup button
+            const allValid = Object.values(passwordValid).every(v => v);
+            document.getElementById('signupButton').disabled = !allValid;
+
+            // Check password match
+            checkPasswordMatch();
+        }
+
+        function updateRequirement(elementId, isValid) {
+            const element = document.getElementById(elementId);
+            element.querySelector('i').className = isValid ? 
+                'fas fa-check valid' : 'fas fa-times invalid';
+        }
+
+        function checkPasswordMatch() {
+            const password = document.getElementById('signupPassword').value;
+            const confirm = document.getElementById('confirmPassword').value;
+            const errorElement = document.getElementById('signupError');
+            
+            if (password && confirm && password !== confirm) {
+                showError(errorElement, 'Passwords do not match');
+                document.getElementById('signupButton').disabled = true;
+            } else {
+                errorElement.style.display = 'none';
+                document.getElementById('signupButton').disabled = 
+                    !Object.values(passwordValid).every(v => v);
+            }
         }
 
         // Signup function
@@ -202,26 +321,12 @@
             const confirmPassword = document.getElementById('confirmPassword').value;
             const errorElement = document.getElementById('signupError');
 
-            // Reset error
-            errorElement.style.display = 'none';
-
-            // Validate
-            if (!email || !password || !confirmPassword) {
-                showError(errorElement, 'All fields are required');
-                return;
-            }
-
+            // Final validation
             if (password !== confirmPassword) {
                 showError(errorElement, 'Passwords do not match');
                 return;
             }
 
-            if (password.length < 8) {
-                showError(errorElement, 'Password must be at least 8 characters');
-                return;
-            }
-
-            // Check if user exists
             if (users.some(user => user.email === email)) {
                 showError(errorElement, 'Email already registered');
                 return;
@@ -237,15 +342,11 @@
             users.push(newUser);
             localStorage.setItem('shroud_users', JSON.stringify(users));
 
-            // Show success message and switch to login
+            // Show success and switch to login
             document.getElementById('successMessage').style.display = 'block';
             showForm('login');
-            
-            // Pre-fill login email
             document.getElementById('loginEmail').value = email;
-            document.getElementById('signupEmail').value = '';
-            document.getElementById('signupPassword').value = '';
-            document.getElementById('confirmPassword').value = '';
+            resetSignupForm();
         }
 
         // Login function
@@ -254,47 +355,39 @@
             const password = document.getElementById('loginPassword').value;
             const errorElement = document.getElementById('loginError');
 
-            // Reset error
-            errorElement.style.display = 'none';
-
-            // Validate
-            if (!email || !password) {
-                showError(errorElement, 'Email and password required');
-                return;
-            }
-
-            // Find user
-            const user = users.find(user => user.email === email);
-
-            if (!user || user.password !== password) {
+            const user = users.find(user => user.email === email && user.password === password);
+            
+            if (!user) {
                 showError(errorElement, 'Invalid email or password');
                 return;
             }
 
-            // In the final version, this would redirect to dashboard.html
-            alert('Login successful! Redirecting to dashboard...');
-            // window.location.href = '/dashboard.html';
+            // Save session and redirect
+            localStorage.setItem('shroud_currentUser', JSON.stringify(user));
+            window.location.href = 'dashboard.html';
         }
 
-        // Helper function to show errors
+        // Helper functions
         function showError(element, message) {
             element.textContent = message;
             element.style.display = 'block';
         }
 
-        // Check URL hash to show correct form
-        window.addEventListener('DOMContentLoaded', () => {
-            if (window.location.hash === '#signup') {
-                showForm('signup');
-            } else if (window.location.hash === '#login') {
-                showForm('login');
-            }
-            
-            // Check if user is already logged in
-            if (localStorage.getItem('shroud_currentUser')) {
-                // window.location.href = '/dashboard.html';
-            }
-        });
+        function resetSignupForm() {
+            document.getElementById('signupEmail').value = '';
+            document.getElementById('signupPassword').value = '';
+            document.getElementById('confirmPassword').value = '';
+            passwordValid = { length: false, upper: false, special: false };
+            document.querySelectorAll('.requirement i').forEach(icon => {
+                icon.className = 'fas fa-check invalid';
+            });
+            document.getElementById('signupButton').disabled = true;
+        }
+
+        // Initial check for logged in users
+        if (localStorage.getItem('shroud_currentUser')) {
+            window.location.href = 'dashboard.html';
+        }
     </script>
 </body>
 </html>
