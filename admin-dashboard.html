@@ -1,0 +1,723 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SHROUD - Admin Dashboard</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root {
+            --primary: #0f172a;
+            --secondary: #f8fafc;
+            --accent: #10ff80;
+            --background: #020617;
+            --card-bg: #1e293b;
+            --border-color: #334155;
+            --success: #10ff80;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --info: #3b82f6;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+        }
+
+        body {
+            background: var(--background);
+            color: var(--secondary);
+            min-height: 100vh;
+        }
+
+        .dashboard-container {
+            display: grid;
+            grid-template-columns: 280px 1fr;
+            min-height: 100vh;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            background: var(--primary);
+            padding: 2rem 1.5rem;
+            border-right: 1px solid var(--border-color);
+            position: sticky;
+            top: 0;
+            height: 100vh;
+        }
+
+        .sidebar-header {
+            margin-bottom: 3rem;
+            padding-bottom: 1.5rem;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .sidebar-header h2 {
+            font-size: 1.5rem;
+            margin-bottom: 0.5rem;
+            color: var(--accent);
+        }
+
+        .sidebar-header p {
+            color: #94a3b8;
+            font-size: 0.9rem;
+        }
+
+        .sidebar-nav {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .nav-item {
+            padding: 0.8rem 1rem;
+            border-radius: 6px;
+            color: #e2e8f0;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            transition: all 0.3s ease;
+        }
+
+        .nav-item:hover {
+            background: rgba(255,255,255,0.05);
+        }
+
+        .nav-item.active {
+            background: rgba(16, 255, 128, 0.1);
+            color: var(--accent);
+            font-weight: 600;
+        }
+
+        .nav-item i {
+            width: 24px;
+            text-align: center;
+        }
+
+        /* Main Content */
+        .main-content {
+            padding: 2rem;
+            background: var(--background);
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .header h1 {
+            font-size: 1.8rem;
+            color: var(--accent);
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 1rem;
+        }
+
+        /* Stats Grid */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-card {
+            background: var(--card-bg);
+            padding: 1.5rem;
+            border-radius: 10px;
+            border: 1px solid var(--border-color);
+            transition: all 0.3s ease;
+        }
+
+        .stat-card:hover {
+            border-color: var(--accent);
+            transform: translateY(-3px);
+        }
+
+        .stat-label {
+            color: #94a3b8;
+            font-size: 0.95rem;
+            margin-bottom: 0.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .stat-value {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--secondary);
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-change {
+            font-size: 0.85rem;
+            display: flex;
+            align-items: center;
+            gap: 0.25rem;
+        }
+
+        .stat-change.positive {
+            color: var(--success);
+        }
+
+        .stat-change.negative {
+            color: var(--danger);
+        }
+
+        /* Charts */
+        .chart-container {
+            background: var(--card-bg);
+            padding: 1.5rem;
+            border-radius: 10px;
+            border: 1px solid var(--border-color);
+            margin-bottom: 2rem;
+            height: 400px;
+        }
+
+        .chart-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .chart-title {
+            font-weight: 600;
+            color: var(--accent);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .chart-actions {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .chart-timeframe {
+            background: var(--primary);
+            border: 1px solid var(--border-color);
+            padding: 0.4rem 0.8rem;
+            border-radius: 6px;
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .chart-timeframe:hover {
+            border-color: var(--accent);
+        }
+
+        .chart-timeframe.active {
+            background: var(--accent);
+            color: var(--primary);
+            border-color: var(--accent);
+        }
+
+        /* Tables */
+        .table-container {
+            background: var(--card-bg);
+            padding: 1.5rem;
+            border-radius: 10px;
+            border: 1px solid var(--border-color);
+            margin-bottom: 2rem;
+            overflow-x: auto;
+        }
+
+        .table-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .table-title {
+            font-weight: 600;
+            color: var(--accent);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: var(--card-bg);
+        }
+
+        th, td {
+            padding: 1rem;
+            text-align: left;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        th {
+            background: var(--primary);
+            font-weight: 600;
+            color: var(--accent);
+            position: sticky;
+            top: 0;
+        }
+
+        tr:hover td {
+            background: rgba(255,255,255,0.03);
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 0.35rem 0.65rem;
+            border-radius: 50px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+
+        .badge-success {
+            background: rgba(16, 255, 128, 0.1);
+            color: var(--success);
+        }
+
+        .badge-warning {
+            background: rgba(245, 158, 11, 0.1);
+            color: var(--warning);
+        }
+
+        .badge-danger {
+            background: rgba(239, 68, 68, 0.1);
+            color: var(--danger);
+        }
+
+        /* Buttons */
+        .btn {
+            padding: 0.6rem 1.2rem;
+            border-radius: 6px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .btn-primary {
+            background: var(--accent);
+            color: var(--primary);
+        }
+
+        .btn-primary:hover {
+            background: #0cec70;
+            transform: translateY(-2px);
+        }
+
+        .btn-outline {
+            background: transparent;
+            color: var(--secondary);
+            border: 1px solid var(--border-color);
+        }
+
+        .btn-outline:hover {
+            background: rgba(255,255,255,0.05);
+            border-color: var(--accent);
+        }
+
+        .btn-danger {
+            background: var(--danger);
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background: #dc2626;
+        }
+
+        /* Responsive */
+        @media (max-width: 1024px) {
+            .dashboard-container {
+                grid-template-columns: 1fr;
+            }
+
+            .sidebar {
+                height: auto;
+                position: static;
+                border-right: none;
+                border-bottom: 1px solid var(--border-color);
+            }
+
+            .sidebar-nav {
+                flex-direction: row;
+                flex-wrap: wrap;
+            }
+
+            .nav-item {
+                padding: 0.6rem 0.8rem;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .header {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .header-actions {
+                width: 100%;
+                justify-content: space-between;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="dashboard-container">
+        <!-- Sidebar -->
+        <div class="sidebar">
+            <div class="sidebar-header">
+                <h2>SHROUD</h2>
+                <p>Admin Dashboard</p>
+            </div>
+            <nav class="sidebar-nav">
+                <a href="#" class="nav-item active">
+                    <i class="fas fa-tachometer-alt"></i>
+                    Dashboard
+                </a>
+                <a href="#" class="nav-item">
+                    <i class="fas fa-users"></i>
+                    Merchants
+                </a>
+                <a href="#" class="nav-item">
+                    <i class="fas fa-wallet"></i>
+                    Wallets
+                </a>
+                <a href="#" class="nav-item">
+                    <i class="fas fa-exchange-alt"></i>
+                    Transactions
+                </a>
+                <a href="#" class="nav-item">
+                    <i class="fas fa-chart-line"></i>
+                    Analytics
+                </a>
+                <a href="#" class="nav-item">
+                    <i class="fas fa-key"></i>
+                    Private Keys
+                </a>
+                <a href="#" class="nav-item">
+                    <i class="fas fa-cog"></i>
+                    Settings
+                </a>
+                <a href="#" class="nav-item" style="margin-top: 2rem;">
+                    <i class="fas fa-sign-out-alt"></i>
+                    Log Out
+                </a>
+            </nav>
+        </div>
+
+        <!-- Main Content -->
+        <div class="main-content">
+            <div class="header">
+                <h1><i class="fas fa-tachometer-alt"></i> Admin Dashboard</h1>
+                <div class="header-actions">
+                    <div class="btn btn-outline">
+                        <i class="fas fa-sync-alt"></i> Refresh
+                    </div>
+                    <div class="btn btn-outline">
+                        <i class="fas fa-download"></i> Export
+                    </div>
+                </div>
+            </div>
+
+            <!-- Stats Grid -->
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-label">
+                        <i class="fas fa-users"></i> Total Merchants
+                    </div>
+                    <div class="stat-value">1,248</div>
+                    <div class="stat-change positive">
+                        <i class="fas fa-arrow-up"></i> 12.5% from last week
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">
+                        <i class="fas fa-wallet"></i> Wallets Generated
+                    </div>
+                    <div class="stat-value">5,742</div>
+                    <div class="stat-change positive">
+                        <i class="fas fa-arrow-up"></i> 8.3% from last week
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">
+                        <i class="fas fa-money-bill-wave"></i> Today's Payments
+                    </div>
+                    <div class="stat-value">$24,568</div>
+                    <div class="stat-change negative">
+                        <i class="fas fa-arrow-down"></i> 3.2% from yesterday
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">
+                        <i class="fas fa-percentage"></i> Conversion Rate
+                    </div>
+                    <div class="stat-value">42.7%</div>
+                    <div class="stat-change positive">
+                        <i class="fas fa-arrow-up"></i> 5.8% from last week
+                    </div>
+                </div>
+            </div>
+
+            <!-- Charts Row -->
+            <div class="chart-container">
+                <div class="chart-header">
+                    <div class="chart-title">
+                        <i class="fas fa-chart-line"></i> Payment Volume (Last 30 Days)
+                    </div>
+                    <div class="chart-actions">
+                        <span class="chart-timeframe">24H</span>
+                        <span class="chart-timeframe">7D</span>
+                        <span class="chart-timeframe active">30D</span>
+                    </div>
+                </div>
+                <canvas id="paymentsChart"></canvas>
+            </div>
+
+            <!-- Tables Row -->
+            <div class="table-container">
+                <div class="table-header">
+                    <div class="table-title">
+                        <i class="fas fa-exchange-alt"></i> Recent Transactions
+                    </div>
+                    <div class="btn btn-outline">
+                        <i class="fas fa-eye"></i> View All
+                    </div>
+                </div>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Merchant</th>
+                            <th>Amount</th>
+                            <th>Crypto</th>
+                            <th>Status</th>
+                            <th>Date</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>TX_8H4J2K9</td>
+                            <td>merchant@example.com</td>
+                            <td>$125.00</td>
+                            <td>BTC</td>
+                            <td><span class="badge badge-success">Completed</span></td>
+                            <td>2023-11-15 14:32</td>
+                            <td>
+                                <button class="btn btn-outline" style="padding: 0.35rem 0.6rem; font-size: 0.85rem;">
+                                    <i class="fas fa-search"></i>
+                                </button>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>TX_7G3H1L8</td>
+                            <td>shop@example.com</td>
+                            <td>$89.50</td>
+                            <td>XMR</td>
+                            <td><span class="badge badge-success">Completed</span></td>
+                            <td>2023-11-15 12:18</td>
+                            <td>
+                                <button class="btn btn-outline" style="padding: 0.35rem 0.6rem; font-size: 0.85rem;">
+                                    <i class="fas fa-search"></i>
+                                </button>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>TX_6F2K9M7</td>
+                            <td>store@example.com</td>
+                            <td>$245.75</td>
+                            <td>ETH</td>
+                            <td><span class="badge badge-warning">Pending</span></td>
+                            <td>2023-11-15 10:45</td>
+                            <td>
+                                <button class="btn btn-outline" style="padding: 0.35rem 0.6rem; font-size: 0.85rem;">
+                                    <i class="fas fa-search"></i>
+                                </button>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>TX_5E1L8N6</td>
+                            <td>business@example.com</td>
+                            <td>$67.30</td>
+                            <td>BTC</td>
+                            <td><span class="badge badge-danger">Failed</span></td>
+                            <td>2023-11-15 09:12</td>
+                            <td>
+                                <button class="btn btn-outline" style="padding: 0.35rem 0.6rem; font-size: 0.85rem;">
+                                    <i class="fas fa-search"></i>
+                                </button>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>TX_4D9M7O5</td>
+                            <td>vendor@example.com</td>
+                            <td>$178.90</td>
+                            <td>USDT</td>
+                            <td><span class="badge badge-success">Completed</span></td>
+                            <td>2023-11-14 16:33</td>
+                            <td>
+                                <button class="btn btn-outline" style="padding: 0.35rem 0.6rem; font-size: 0.85rem;">
+                                    <i class="fas fa-search"></i>
+                                </button>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Wallets Table -->
+            <div class="table-container">
+                <div class="table-header">
+                    <div class="table-title">
+                        <i class="fas fa-wallet"></i> Recent Wallets Generated
+                    </div>
+                    <div class="btn btn-outline">
+                        <i class="fas fa-eye"></i> View All
+                    </div>
+                </div>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Address</th>
+                            <th>Currency</th>
+                            <th>Merchant</th>
+                            <th>Generated</th>
+                            <th>Balance</th>
+                            <th>Private Key</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>3FZbgi29...J8eK3n</td>
+                            <td>BTC</td>
+                            <td>merchant@example.com</td>
+                            <td>2023-11-15 14:30</td>
+                            <td>0.025 BTC</td>
+                            <td>
+                                <button class="btn btn-outline" style="padding: 0.35rem 0.6rem; font-size: 0.85rem;">
+                                    <i class="fas fa-key"></i> View
+                                </button>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>0x89205A0...3D4fE2</td>
+                            <td>ETH</td>
+                            <td>shop@example.com</td>
+                            <td>2023-11-15 12:15</td>
+                            <td>1.42 ETH</td>
+                            <td>
+                                <button class="btn btn-outline" style="padding: 0.35rem 0.6rem; font-size: 0.85rem;">
+                                    <i class="fas fa-key"></i> View
+                                </button>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>48jWnunZ...9H4gbQ</td>
+                            <td>XMR</td>
+                            <td>store@example.com</td>
+                            <td>2023-11-15 10:40</td>
+                            <td>12.75 XMR</td>
+                            <td>
+                                <button class="btn btn-outline" style="padding: 0.35rem 0.6rem; font-size: 0.85rem;">
+                                    <i class="fas fa-key"></i> View
+                                </button>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Initialize Charts
+        document.addEventListener('DOMContentLoaded', function() {
+            // Payments Chart
+            const paymentsCtx = document.getElementById('paymentsChart').getContext('2d');
+            const paymentsChart = new Chart(paymentsCtx, {
+                type: 'line',
+                data: {
+                    labels: Array.from({length: 30}, (_, i) => `${i+1} Nov`),
+                    datasets: [{
+                        label: 'Payments ($)',
+                        data: Array.from({length: 30}, () => Math.floor(Math.random() * 10000) + 5000),
+                        borderColor: '#10ff80',
+                        backgroundColor: 'rgba(16, 255, 128, 0.1)',
+                        borderWidth: 2,
+                        fill: true,
+                        tension: 0.4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: false
+                        },
+                        tooltip: {
+                            mode: 'index',
+                            intersect: false
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: false,
+                            grid: {
+                                color: 'rgba(255, 255, 255, 0.1)'
+                            },
+                            ticks: {
+                                callback: function(value) {
+                                    return '$' + value.toLocaleString();
+                                }
+                            }
+                        },
+                        x: {
+                            grid: {
+                                display: false
+                            }
+                        }
+                    }
+                }
+            });
+
+            // Timeframe selector
+            document.querySelectorAll('.chart-timeframe').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    document.querySelectorAll('.chart-timeframe').forEach(b => b.classList.remove('active'));
+                    this.classList.add('active');
+                    
+                    // In a real app, this would update the chart data
+                    console.log('Timeframe changed to:', this.textContent);
+                });
+            });
+
+            // Private key view buttons
+            document.querySelectorAll('[data-action="view-key"]').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const keyId = this.getAttribute('data-key-id');
+                    // In a real app, this would fetch the decrypted key from your secure backend
+                    alert('Private key viewing would be implemented with proper authentication and decryption');
+                });
+            });
+        });
+    </script>
+</body>
+</html>
