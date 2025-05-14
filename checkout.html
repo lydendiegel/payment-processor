@@ -5,14 +5,19 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Payment Checkout - SHROUD</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/qrcodejs/qrcode.min.js"></script>
     <style>
         :root {
             --primary: #000000;
             --secondary: #ffffff;
+            --accent: #10ff80;
             --background: #111111;
             --card-bg: #1a1a1a;
             --border-color: #333333;
+            --success: #10ff80;
+            --warning: #ffbb33;
+            --error: #ff4444;
         }
 
         * {
@@ -20,6 +25,7 @@
             padding: 0;
             box-sizing: border-box;
             font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            -webkit-font-smoothing: antialiased;
         }
 
         body {
@@ -27,6 +33,7 @@
             color: var(--secondary);
             min-height: 100vh;
             padding: 2rem;
+            line-height: 1.6;
         }
 
         .checkout-container {
@@ -36,57 +43,79 @@
             border-radius: 12px;
             padding: 2rem;
             border: 1px solid var(--border-color);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
         }
 
         .header {
             text-align: center;
             margin-bottom: 2rem;
+            position: relative;
         }
 
         .merchant-logo {
-            max-height: 50px;
-            margin-bottom: 1rem;
+            max-height: 80px;
+            max-width: 100%;
+            margin-bottom: 1.5rem;
+            border-radius: 8px;
+            object-fit: contain;
         }
 
         .product-info {
             text-align: center;
             margin-bottom: 2rem;
+            position: relative;
         }
 
         .product-image {
-            max-width: 200px;
-            max-height: 200px;
-            border-radius: 8px;
-            margin-bottom: 1rem;
+            max-width: 100%;
+            max-height: 300px;
+            border-radius: 12px;
+            margin-bottom: 1.5rem;
+            border: 1px solid var(--border-color);
+            object-fit: contain;
         }
 
         .product-name {
-            font-size: 1.5rem;
-            font-weight: bold;
-            margin-bottom: 0.5rem;
+            font-size: 1.75rem;
+            font-weight: 700;
+            margin-bottom: 0.75rem;
+            color: var(--accent);
         }
 
         .product-description {
             color: #aaa;
-            margin-bottom: 1rem;
+            margin-bottom: 1.5rem;
+            line-height: 1.6;
         }
 
         .amount {
-            font-size: 2rem;
-            font-weight: bold;
+            font-size: 2.25rem;
+            font-weight: 700;
             margin-bottom: 2rem;
+            background: rgba(16, 255, 128, 0.1);
+            padding: 1rem 2rem;
+            border-radius: 8px;
+            display: inline-block;
+            border: 1px solid var(--accent);
         }
 
-        /* Customer Info Form */
+        /* Form Sections */
         .form-section {
             margin-bottom: 2rem;
+            background: rgba(0,0,0,0.3);
+            padding: 1.5rem;
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
         }
 
         .form-title {
             font-size: 1.2rem;
-            margin-bottom: 1rem;
-            padding-bottom: 0.5rem;
-            border-bottom: 1px solid var(--border-color);
+            margin-bottom: 1.5rem;
+            padding-bottom: 0.75rem;
+            border-bottom: 2px solid var(--accent);
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
         }
 
         .form-group {
@@ -95,16 +124,26 @@
 
         .form-label {
             display: block;
-            margin-bottom: 0.5rem;
+            margin-bottom: 0.75rem;
+            font-weight: 500;
+            color: #ccc;
         }
 
         .form-control {
             width: 100%;
-            padding: 0.8rem;
-            background: #1a1a1a;
+            padding: 1rem;
+            background: rgba(255,255,255,0.05);
             border: 1px solid var(--border-color);
             color: var(--secondary);
-            border-radius: 4px;
+            border-radius: 6px;
+            transition: all 0.3s ease;
+            font-size: 1rem;
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px rgba(16, 255, 128, 0.1);
         }
 
         /* Payment Methods */
@@ -115,133 +154,270 @@
         .payment-method {
             display: flex;
             align-items: center;
-            padding: 1rem;
+            padding: 1.25rem;
             border: 1px solid var(--border-color);
             border-radius: 8px;
             margin-bottom: 1rem;
             cursor: pointer;
+            transition: all 0.3s ease;
         }
 
         .payment-method:hover {
-            border-color: var(--secondary);
+            border-color: var(--accent);
+            transform: translateY(-2px);
         }
 
         .payment-method.active {
-            border-color: var(--secondary);
-            background: rgba(255,255,255,0.1);
+            border-color: var(--accent);
+            background: rgba(16, 255, 128, 0.05);
+            box-shadow: 0 4px 6px rgba(16, 255, 128, 0.1);
         }
 
         .payment-icon {
-            width: 32px;
-            height: 32px;
-            margin-right: 1rem;
+            width: 40px;
+            height: 40px;
+            margin-right: 1.5rem;
+            border-radius: 8px;
+            object-fit: contain;
         }
 
         /* Payment Instructions */
         .payment-instructions {
             display: none;
             background: rgba(0,0,0,0.3);
-            padding: 1.5rem;
+            padding: 2rem;
             border-radius: 8px;
             margin-bottom: 2rem;
+            animation: fadeIn 0.3s ease;
+            border: 1px solid var(--border-color);
         }
 
         .instructions-title {
-            margin-bottom: 1rem;
-            font-weight: bold;
+            margin-bottom: 1.5rem;
+            font-weight: 600;
+            font-size: 1.25rem;
+            color: var(--accent);
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
         }
 
         .amount-to-send {
-            font-size: 1.5rem;
-            font-weight: bold;
-            margin: 1rem 0;
+            font-size: 1.75rem;
+            font-weight: 700;
+            margin: 1.5rem 0;
+            color: var(--success);
+            background: rgba(16, 255, 128, 0.1);
+            padding: 1rem;
+            border-radius: 8px;
+            display: inline-block;
         }
 
         .wallet-address {
-            background: #1a1a1a;
-            padding: 1rem;
-            border-radius: 4px;
+            background: rgba(0,0,0,0.5);
+            padding: 1.25rem;
+            border-radius: 8px;
             word-break: break-all;
-            margin: 1rem 0;
+            margin: 1.5rem 0;
             position: relative;
+            font-family: monospace;
+            border: 1px solid var(--border-color);
         }
 
         .copy-btn {
             position: absolute;
-            right: 0.5rem;
-            top: 0.5rem;
-            background: none;
+            right: 0.75rem;
+            top: 0.75rem;
+            background: rgba(255,255,255,0.1);
             border: none;
             color: var(--secondary);
             cursor: pointer;
-        }
-
-        .qr-code {
-            width: 150px;
-            height: 150px;
-            margin: 1rem auto;
             padding: 0.5rem;
-            background: white;
             border-radius: 4px;
+            transition: all 0.3s ease;
         }
 
-        .payment-status {
-            padding: 1rem;
-            border-radius: 6px;
-            text-align: center;
-            margin: 1rem 0;
-            font-weight: bold;
-        }
-
-        .status-pending {
-            background: rgba(255,255,0,0.1);
-            color: yellow;
-        }
-
-        .status-success {
-            background: rgba(0,255,0,0.1);
-            color: lime;
-        }
-
-        /* Buttons */
-        .btn {
-            padding: 1rem;
-            border-radius: 4px;
-            font-weight: bold;
-            cursor: pointer;
-            border: none;
-            width: 100%;
-            margin-top: 1rem;
-        }
-
-        .btn-primary {
-            background: var(--secondary);
+        .copy-btn:hover {
+            background: var(--accent);
             color: var(--primary);
         }
 
-        .btn-secondary {
-            background: var(--border-color);
-            color: var(--secondary);
+        .qr-code {
+            width: 200px;
+            height: 200px;
+            margin: 1.5rem auto;
+            padding: 1rem;
+            background: white;
+            border-radius: 12px;
+            border: 4px solid var(--accent);
+        }
+
+        .payment-status {
+            padding: 1.5rem;
+            border-radius: 8px;
+            text-align: center;
+            margin: 1.5rem 0;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.75rem;
+        }
+
+        .status-pending {
+            background: rgba(255, 187, 51, 0.1);
+            color: var(--warning);
+            border: 1px solid var(--warning);
+        }
+
+        .status-success {
+            background: rgba(16, 255, 128, 0.1);
+            color: var(--success);
+            border: 1px solid var(--success);
         }
 
         /* Order Complete */
         .order-complete {
             display: none;
             text-align: center;
+            animation: fadeIn 0.5s ease;
         }
 
         .complete-icon {
-            font-size: 3rem;
-            color: lime;
-            margin-bottom: 1rem;
+            font-size: 4rem;
+            color: var(--success);
+            margin-bottom: 1.5rem;
+            animation: bounce 1s ease;
         }
 
         .order-details {
             text-align: left;
-            margin: 1rem 0;
-            padding: 1rem;
+            margin: 2rem 0;
+            padding: 1.5rem;
             background: rgba(0,0,0,0.3);
+            border-radius: 12px;
+            border: 1px solid var(--border-color);
+        }
+
+        .order-details p {
+            margin-bottom: 0.75rem;
+        }
+
+        .order-details strong {
+            color: var(--accent);
+        }
+
+        /* Buttons */
+        .btn {
+            padding: 1rem 1.5rem;
             border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            border: none;
+            width: 100%;
+            margin-top: 1rem;
+            transition: all 0.3s ease;
+            font-size: 1rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.75rem;
+        }
+
+        .btn-primary {
+            background: var(--accent);
+            color: var(--primary);
+        }
+
+        .btn-primary:hover {
+            background: #0cec70;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(16, 255, 128, 0.2);
+        }
+
+        .btn-secondary {
+            background: rgba(255,255,255,0.1);
+            color: var(--secondary);
+            border: 1px solid var(--border-color);
+        }
+
+        .btn-secondary:hover {
+            background: rgba(255,255,255,0.2);
+            transform: translateY(-2px);
+        }
+
+        /* Animations */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes bounce {
+            0%, 20%, 50%, 80%, 100% { transform: translateY(0); }
+            40% { transform: translateY(-20px); }
+            60% { transform: translateY(-10px); }
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            body {
+                padding: 1rem;
+            }
+
+            .checkout-container {
+                padding: 1.5rem;
+            }
+
+            .merchant-logo {
+                max-height: 60px;
+            }
+
+            .product-name {
+                font-size: 1.5rem;
+            }
+
+            .amount {
+                font-size: 1.75rem;
+                padding: 0.75rem 1.5rem;
+            }
+
+            .payment-method {
+                padding: 1rem;
+            }
+
+            .payment-icon {
+                width: 32px;
+                height: 32px;
+                margin-right: 1rem;
+            }
+
+            .qr-code {
+                width: 160px;
+                height: 160px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .checkout-container {
+                padding: 1rem;
+            }
+
+            .form-section {
+                padding: 1rem;
+            }
+
+            .payment-instructions {
+                padding: 1rem;
+            }
+
+            .btn {
+                padding: 0.75rem;
+            }
         }
     </style>
 </head>
@@ -263,34 +439,34 @@
         <!-- Customer Info Form -->
         <div id="customerInfoForm">
             <div class="form-section" id="emailSection">
-                <div class="form-title">Contact Information</div>
+                <div class="form-title"><i class="fas fa-envelope"></i> Contact Information</div>
                 <div class="form-group">
                     <label class="form-label">Email Address</label>
-                    <input type="email" class="form-control" id="customerEmail">
+                    <input type="email" class="form-control" id="customerEmail" placeholder="your@email.com">
                 </div>
             </div>
 
             <div class="form-section" id="shippingSection" style="display: none;">
-                <div class="form-title">Shipping Information</div>
+                <div class="form-title"><i class="fas fa-truck"></i> Shipping Information</div>
                 <div class="form-group">
                     <label class="form-label">Shipping Address</label>
-                    <input type="text" class="form-control" id="shippingAddress">
+                    <input type="text" class="form-control" id="shippingAddress" placeholder="123 Main St, City, Country">
                 </div>
             </div>
 
             <div class="form-section" id="phoneSection" style="display: none;">
-                <div class="form-title">Phone Number</div>
+                <div class="form-title"><i class="fas fa-phone"></i> Phone Number</div>
                 <div class="form-group">
                     <label class="form-label">Phone Number</label>
-                    <input type="tel" class="form-control" id="customerPhone">
+                    <input type="tel" class="form-control" id="customerPhone" placeholder="+1 (123) 456-7890">
                 </div>
             </div>
 
             <div class="form-section" id="socialSection" style="display: none;">
-                <div class="form-title">Social Media</div>
+                <div class="form-title"><i class="fas fa-hashtag"></i> Social Media</div>
                 <div class="form-group">
                     <label class="form-label">Social Media Handle</label>
-                    <input type="text" class="form-control" id="socialMedia">
+                    <input type="text" class="form-control" id="socialMedia" placeholder="@username">
                 </div>
             </div>
 
@@ -298,23 +474,27 @@
                 <!-- Custom fields will be added here -->
             </div>
 
-            <button class="btn btn-primary" onclick="proceedToPayment()">Continue to Payment</button>
+            <button class="btn btn-primary" onclick="proceedToPayment()">
+                <i class="fas fa-arrow-right"></i> Continue to Payment
+            </button>
         </div>
 
         <!-- Payment Methods -->
         <div id="paymentSelection" style="display: none;">
-            <div class="form-title">Select Payment Method</div>
+            <div class="form-title"><i class="fas fa-wallet"></i> Select Payment Method</div>
             <div class="payment-methods" id="paymentMethods">
                 <!-- Payment methods will be added here -->
             </div>
-            <button class="btn btn-secondary" onclick="goBackToInfo()">Back</button>
+            <button class="btn btn-secondary" onclick="goBackToInfo()">
+                <i class="fas fa-arrow-left"></i> Back
+            </button>
         </div>
 
         <!-- Payment Instructions -->
         <div id="paymentInstructions" class="payment-instructions">
-            <div class="instructions-title">Send Payment</div>
+            <div class="instructions-title"><i class="fas fa-qrcode"></i> Send Payment</div>
             <div class="amount-to-send" id="amountToSend"></div>
-            <div id="networkName"></div>
+            <div id="networkName" style="margin-bottom: 1rem;"></div>
             <div>To this address:</div>
             <div class="wallet-address" id="walletAddress">
                 <button class="copy-btn" onclick="copyAddress()">
@@ -326,7 +506,9 @@
             <div class="payment-status status-pending" id="paymentStatus">
                 <i class="fas fa-circle-notch fa-spin"></i> Waiting for payment confirmation...
             </div>
-            <button class="btn btn-secondary" onclick="goBackToPayment()">Back</button>
+            <button class="btn btn-secondary" onclick="goBackToPayment()">
+                <i class="fas fa-arrow-left"></i> Back
+            </button>
         </div>
 
         <!-- Order Complete -->
@@ -339,62 +521,119 @@
                 <p><strong>Product:</strong> <span id="completeProductName"></span></p>
                 <p><strong>Amount:</strong> <span id="completeAmount"></span></p>
                 <p><strong>Transaction ID:</strong> <span id="transactionId"></span></p>
+                <p><strong>Date:</strong> <span id="transactionDate"></span></p>
             </div>
             <p>A receipt has been sent to <span id="customerEmailDisplay"></span></p>
+            <div id="thankYouMessage" style="margin-top: 1.5rem;"></div>
+            <button class="btn btn-primary" id="redirectButton" style="margin-top: 2rem;">
+                <i class="fas fa-check"></i> Continue
+            </button>
         </div>
     </div>
 
     <script>
-        // Get checkout ID from URL
+        // Enhanced Crypto Payment Checkout System
         const urlParams = new URLSearchParams(window.location.search);
         const checkoutId = urlParams.get('id');
         let checkoutConfig = null;
         let selectedCrypto = null;
         let customerInfo = {};
+        let paymentCheckInterval = null;
+        let transactionData = null;
+
+        // Crypto options with more details
+        const cryptoOptions = [
+            { id: 'btc', name: 'Bitcoin', symbol: 'BTC', icon: 'https://cryptologos.cc/logos/bitcoin-btc-logo.png', explorer: 'https://blockchair.com/bitcoin/transaction/' },
+            { id: 'eth', name: 'Ethereum', symbol: 'ETH', icon: 'https://cryptologos.cc/logos/ethereum-eth-logo.png', explorer: 'https://etherscan.io/tx/' },
+            { id: 'xmr', name: 'Monero', symbol: 'XMR', icon: 'https://cryptologos.cc/logos/monero-xmr-logo.png', explorer: 'https://www.exploremonero.com/transaction/' },
+            { id: 'sol', name: 'Solana', symbol: 'SOL', icon: 'https://cryptologos.cc/logos/solana-sol-logo.png', explorer: 'https://explorer.solana.com/tx/' },
+            { id: 'usdt', name: 'Tether', symbol: 'USDT', icon: 'https://cryptologos.cc/logos/tether-usdt-logo.png', explorer: 'https://etherscan.io/token/0xdac17f958d2ee523a2206206994597c13d831ec7?a=' },
+            { id: 'usdc', name: 'USD Coin', symbol: 'USDC', icon: 'https://cryptologos.cc/logos/usd-coin-usdc-logo.png', explorer: 'https://etherscan.io/token/0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48?a=' },
+            { id: 'ltc', name: 'Litecoin', symbol: 'LTC', icon: 'https://cryptologos.cc/logos/litecoin-ltc-logo.png', explorer: 'https://blockchair.com/litecoin/transaction/' },
+            { id: 'doge', name: 'Dogecoin', symbol: 'DOGE', icon: 'https://cryptologos.cc/logos/dogecoin-doge-logo.png', explorer: 'https://blockchair.com/dogecoin/transaction/' }
+        ];
+
+        // Initialize the checkout
+        document.addEventListener('DOMContentLoaded', function() {
+            loadCheckoutConfig();
+            
+            // Check for GitHub Pages environment
+            if (window.location.host.includes('github.io')) {
+                console.log('Running on GitHub Pages');
+                // Add any GitHub-specific logic here
+            }
+        });
 
         // Load checkout configuration
-        function loadCheckoutConfig() {
-            if (!checkoutId) {
-                alert('Invalid checkout link');
-                window.location.href = 'auth.html';
-                return;
+        async function loadCheckoutConfig() {
+            try {
+                if (!checkoutId) {
+                    throw new Error('Invalid checkout link');
+                }
+                
+                // Load from localStorage (in a real app, this would be from a database)
+                const checkouts = JSON.parse(localStorage.getItem('shroud_checkouts')) || {};
+                checkoutConfig = checkouts[checkoutId];
+                
+                if (!checkoutConfig) {
+                    throw new Error('Checkout not found or expired');
+                }
+
+                applyAppearanceSettings();
+                setupProductInfo();
+                setupCustomerForm();
+                setupCustomCSS();
+                trackCustomerIP();
+
+            } catch (error) {
+                console.error('Checkout Error:', error);
+                alert('Error loading checkout: ' + error.message);
+                window.location.href = 'index.html?error=invalid_checkout';
             }
+        }
 
-            const checkouts = JSON.parse(localStorage.getItem('shroud_checkouts')) || {};
-            checkoutConfig = checkouts[checkoutId];
-
-            if (!checkoutConfig) {
-                alert('Checkout not found or expired');
-                window.location.href = 'auth.html';
-                return;
+        // Apply appearance settings from config
+        function applyAppearanceSettings() {
+            const style = document.documentElement.style;
+            
+            if (checkoutConfig.appearance.primaryColor) {
+                style.setProperty('--primary', checkoutConfig.appearance.primaryColor);
             }
-
-            // Apply appearance settings
-            document.documentElement.style.setProperty('--primary', checkoutConfig.appearance.primaryColor);
-            document.documentElement.style.setProperty('--secondary', checkoutConfig.appearance.secondaryColor || '#ffffff');
-            document.documentElement.style.setProperty('--background', checkoutConfig.appearance.backgroundColor);
-            document.documentElement.style.setProperty('--card-bg', checkoutConfig.appearance.cardBg || '#1a1a1a');
-            document.documentElement.style.setProperty('--border-color', checkoutConfig.appearance.borderColor || '#333333');
+            
+            if (checkoutConfig.appearance.backgroundColor) {
+                style.setProperty('--background', checkoutConfig.appearance.backgroundColor);
+            }
+            
+            if (checkoutConfig.appearance.cardBg) {
+                style.setProperty('--card-bg', checkoutConfig.appearance.cardBg);
+            }
+            
+            if (checkoutConfig.appearance.borderColor) {
+                style.setProperty('--border-color', checkoutConfig.appearance.borderColor);
+            }
 
             // Set merchant logo
             if (checkoutConfig.appearance.logo) {
                 document.getElementById('merchantLogo').src = checkoutConfig.appearance.logo;
+                document.getElementById('merchantLogo').style.display = 'block';
             }
+        }
 
-            // Set product info
+        // Setup product information
+        function setupProductInfo() {
             document.getElementById('productName').textContent = checkoutConfig.product.name;
-            document.getElementById('productDescription').textContent = checkoutConfig.product.description || '';
             
-            const amountDisplay = `${checkoutConfig.product.amount} ${checkoutConfig.product.currency}`;
+            if (checkoutConfig.product.description) {
+                document.getElementById('productDescription').textContent = checkoutConfig.product.description;
+            }
+            
+            const amountDisplay = `${checkoutConfig.product.amount.toFixed(2)} ${checkoutConfig.product.currency}`;
             document.getElementById('productAmount').textContent = amountDisplay;
 
             if (checkoutConfig.product.image) {
                 document.getElementById('productImage').src = checkoutConfig.product.image;
                 document.getElementById('productImage').style.display = 'block';
             }
-
-            // Setup customer info form
-            setupCustomerForm();
         }
 
         // Setup customer form based on requirements
@@ -434,7 +673,7 @@
             if (checkoutConfig.customerInfo.customFields && checkoutConfig.customerInfo.customFields.length > 0) {
                 const container = document.getElementById('customFieldsSection');
                 container.style.display = 'block';
-                container.innerHTML = '<div class="form-title">Additional Information</div>';
+                container.innerHTML = '<div class="form-title"><i class="fas fa-list"></i> Additional Information</div>';
 
                 checkoutConfig.customerInfo.customFields.forEach(field => {
                     const group = document.createElement('div');
@@ -445,6 +684,35 @@
                     `;
                     container.appendChild(group);
                 });
+            }
+        }
+
+        // Apply any custom CSS from the merchant
+        function setupCustomCSS() {
+            if (checkoutConfig.appearance.customCss) {
+                const style = document.createElement('style');
+                style.textContent = checkoutConfig.appearance.customCss;
+                document.head.appendChild(style);
+            }
+        }
+
+        // Track customer IP if enabled
+        function trackCustomerIP() {
+            if (checkoutConfig.customerInfo.collectIp) {
+                // In a real app, you would collect the IP address here
+                console.log('IP collection enabled (would collect in production)');
+            }
+        }
+
+        // Setup auto-redirect if configured
+        function setupAutoRedirect() {
+            if (checkoutConfig.customerInfo.redirectUrl) {
+                const redirectBtn = document.getElementById('redirectButton');
+                redirectBtn.onclick = function() {
+                    window.location.href = checkoutConfig.customerInfo.redirectUrl;
+                };
+            } else {
+                document.getElementById('redirectButton').style.display = 'none';
             }
         }
 
@@ -462,7 +730,8 @@
                 shippingAddress: document.getElementById('shippingAddress').value,
                 phone: document.getElementById('customerPhone').value,
                 socialMedia: document.getElementById('socialMedia').value,
-                customFields: {}
+                customFields: {},
+                ipAddress: null // Would be collected in production
             };
 
             // Save custom fields
@@ -479,7 +748,7 @@
             document.getElementById('paymentSelection').style.display = 'block';
         }
 
-        // Setup payment methods
+        // Setup payment methods selection
         function setupPaymentMethods() {
             const container = document.getElementById('paymentMethods');
             container.innerHTML = '';
@@ -527,8 +796,10 @@
             qrElement.innerHTML = '';
             new QRCode(qrElement, {
                 text: `${crypto.id}:${checkoutConfig.payoutAddresses[crypto.id]}?amount=${amountInCrypto}`,
-                width: 150,
-                height: 150
+                width: 200,
+                height: 200,
+                colorDark: checkoutConfig.appearance.primaryColor || '#000000',
+                colorLight: checkoutConfig.appearance.backgroundColor || '#111111'
             });
 
             document.getElementById('paymentSelection').style.display = 'none';
@@ -538,8 +809,16 @@
             simulatePaymentDetection();
         }
 
-        // Simulate payment detection
+        // Simulate payment detection (in a real app, this would connect to a payment processor)
         function simulatePaymentDetection() {
+            // Clear any existing interval
+            if (paymentCheckInterval) clearInterval(paymentCheckInterval);
+            
+            // Show pending status
+            document.getElementById('paymentStatus').className = 'payment-status status-pending';
+            document.getElementById('paymentStatus').innerHTML = '<i class="fas fa-circle-notch fa-spin"></i> Waiting for payment confirmation...';
+            
+            // Simulate payment confirmation after delay
             setTimeout(() => {
                 document.getElementById('paymentStatus').className = 'payment-status status-success';
                 document.getElementById('paymentStatus').innerHTML = '<i class="fas fa-check-circle"></i> Payment confirmed!';
@@ -551,25 +830,37 @@
             }, 5000);
         }
 
-        // Complete checkout
+        // Complete checkout and save transaction
         function completeCheckout() {
-            // Save transaction
-            const transactionId = `${selectedCrypto.id}_${Math.random().toString(36).substr(2, 16)}`;
-            const transaction = {
+            // Generate transaction ID
+            const transactionId = `${selectedCrypto.id}_${Date.now().toString(36)}_${Math.random().toString(36).substr(2, 4)}`;
+            
+            // Create transaction object
+            transactionData = {
                 id: transactionId,
                 checkoutId: checkoutId,
                 crypto: selectedCrypto.id,
                 amount: checkoutConfig.product.amount,
                 cryptoAmount: parseFloat(document.getElementById('amountToSend').textContent.split(' ')[0]),
                 customerInfo: customerInfo,
-                product: checkoutConfig.product.name,
+                product: {
+                    name: checkoutConfig.product.name,
+                    description: checkoutConfig.product.description,
+                    image: checkoutConfig.product.image
+                },
                 date: new Date().toISOString(),
-                status: 'completed'
+                status: 'completed',
+                merchant: checkoutConfig.merchant,
+                payoutAddress: checkoutConfig.payoutAddresses[selectedCrypto.id]
             };
 
+            // Save transaction to localStorage
             let transactions = JSON.parse(localStorage.getItem('shroud_transactions')) || [];
-            transactions.push(transaction);
+            transactions.push(transactionData);
             localStorage.setItem('shroud_transactions', JSON.stringify(transactions));
+
+            // Update merchant's balance (simplified)
+            updateMerchantBalance(transactionData);
 
             // Update UI
             document.getElementById('paymentInstructions').style.display = 'none';
@@ -578,7 +869,19 @@
             document.getElementById('completeProductName').textContent = checkoutConfig.product.name;
             document.getElementById('completeAmount').textContent = document.getElementById('amountToSend').textContent;
             document.getElementById('transactionId').textContent = transactionId;
+            document.getElementById('transactionDate').textContent = new Date().toLocaleString();
             document.getElementById('customerEmailDisplay').textContent = customerInfo.email || 'your email';
+            
+            // Show thank you message if configured
+            if (checkoutConfig.customerInfo.thankYouMessage) {
+                document.getElementById('thankYouMessage').innerHTML = checkoutConfig.customerInfo.thankYouMessage;
+            }
+        }
+
+        // Update merchant's balance (simplified for demo)
+        function updateMerchantBalance(transaction) {
+            // In a real app, this would update the merchant's balance in a database
+            console.log('Updating merchant balance for transaction:', transaction);
         }
 
         // Navigation functions
@@ -590,18 +893,27 @@
         function goBackToPayment() {
             document.getElementById('paymentInstructions').style.display = 'none';
             document.getElementById('paymentSelection').style.display = 'block';
+            
+            // Clear any payment checking interval
+            if (paymentCheckInterval) clearInterval(paymentCheckInterval);
         }
 
         // Helper functions
         function copyAddress() {
             navigator.clipboard.writeText(document.getElementById('addressText').textContent);
-            alert('Address copied to clipboard!');
+            
+            // Show feedback
+            const btn = event.currentTarget;
+            btn.innerHTML = '<i class="fas fa-check"></i>';
+            setTimeout(() => {
+                btn.innerHTML = '<i class="fas fa-copy"></i>';
+            }, 2000);
         }
 
         function getNetworkName(cryptoId) {
             const networks = {
                 btc: 'Bitcoin Network',
-                eth: 'Ethereum Network',
+                eth: 'Ethereum Network (ERC-20)',
                 xmr: 'Monero Network',
                 sol: 'Solana Network',
                 usdt: 'Tether Network',
@@ -627,20 +939,14 @@
             return rates[cryptoId] || 1;
         }
 
-        // Crypto options for the checkout page
-        const cryptoOptions = [
-            { id: 'btc', name: 'Bitcoin', symbol: 'BTC', icon: 'https://cryptologos.cc/logos/bitcoin-btc-logo.png' },
-            { id: 'eth', name: 'Ethereum', symbol: 'ETH', icon: 'https://cryptologos.cc/logos/ethereum-eth-logo.png' },
-            { id: 'xmr', name: 'Monero', symbol: 'XMR', icon: 'https://cryptologos.cc/logos/monero-xmr-logo.png' },
-            { id: 'sol', name: 'Solana', symbol: 'SOL', icon: 'https://cryptologos.cc/logos/solana-sol-logo.png' },
-            { id: 'usdt', name: 'Tether', symbol: 'USDT', icon: 'https://cryptologos.cc/logos/tether-usdt-logo.png' },
-            { id: 'usdc', name: 'USD Coin', symbol: 'USDC', icon: 'https://cryptologos.cc/logos/usd-coin-usdc-logo.png' },
-            { id: 'ltc', name: 'Litecoin', symbol: 'LTC', icon: 'https://cryptologos.cc/logos/litecoin-ltc-logo.png' },
-            { id: 'doge', name: 'Dogecoin', symbol: 'DOGE', icon: 'https://cryptologos.cc/logos/dogecoin-doge-logo.png' }
-        ];
-
-        // Initialize
-        document.addEventListener('DOMContentLoaded', loadCheckoutConfig);
+        // View transaction on blockchain explorer
+        function viewOnExplorer(txHash) {
+            if (!selectedCrypto) return;
+            const explorer = cryptoOptions.find(c => c.id === selectedCrypto.id)?.explorer;
+            if (explorer) {
+                window.open(explorer + txHash, '_blank');
+            }
+        }
     </script>
 </body>
 </html>
