@@ -1,0 +1,624 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Checkout Generator - SHROUD</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/qrcodejs/qrcode.min.js"></script>
+    <style>
+        :root {
+            --primary: #000000;
+            --secondary: #ffffff;
+            --background: #111111;
+            --card-bg: #1a1a1a;
+            --border-color: #333333;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+        }
+
+        body {
+            background: var(--primary);
+            color: var(--secondary);
+            min-height: 100vh;
+        }
+
+        .dashboard-container {
+            display: grid;
+            grid-template-columns: 250px 1fr;
+            min-height: 100vh;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            background: var(--background);
+            padding: 2rem;
+            border-right: 1px solid var(--border-color);
+        }
+
+        .sidebar-header {
+            margin-bottom: 2rem;
+        }
+
+        .sidebar-nav {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .nav-item {
+            padding: 0.8rem;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            color: var(--secondary);
+            text-decoration: none;
+            display: block;
+        }
+
+        .nav-item:hover {
+            background: rgba(255,255,255,0.1);
+        }
+
+        .nav-item.active {
+            background: rgba(255,255,255,0.2);
+            font-weight: bold;
+        }
+
+        /* Main Content */
+        .main-content {
+            padding: 2rem;
+            overflow-y: auto;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+        }
+
+        /* Generator Form */
+        .generator-form {
+            background: var(--card-bg);
+            padding: 2rem;
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+            margin-bottom: 2rem;
+        }
+
+        .form-section {
+            margin-bottom: 2rem;
+        }
+
+        .form-section-title {
+            font-size: 1.2rem;
+            margin-bottom: 1rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .form-group {
+            margin-bottom: 1rem;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 0.8rem;
+            background: #1a1a1a;
+            border: 1px solid var(--border-color);
+            color: var(--secondary);
+            border-radius: 4px;
+        }
+
+        select.form-control {
+            appearance: none;
+            background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='white'%3e%3cpath d='M7 10l5 5 5-5z'/%3e%3c/svg%3e");
+            background-repeat: no-repeat;
+            background-position: right 0.7rem center;
+            background-size: 1rem;
+        }
+
+        .color-picker {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .color-option {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            cursor: pointer;
+            border: 2px solid transparent;
+        }
+
+        .color-option.selected {
+            border-color: var(--secondary);
+        }
+
+        .image-upload {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            border: 2px dashed var(--border-color);
+            padding: 2rem;
+            border-radius: 4px;
+            cursor: pointer;
+            text-align: center;
+        }
+
+        .image-upload:hover {
+            border-color: var(--secondary);
+        }
+
+        .image-preview {
+            max-width: 200px;
+            max-height: 200px;
+            margin-top: 1rem;
+            display: none;
+        }
+
+        /* Generated Preview */
+        .preview-container {
+            background: var(--card-bg);
+            padding: 2rem;
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+        }
+
+        .preview-header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .preview-logo {
+            max-height: 50px;
+            margin-bottom: 1rem;
+        }
+
+        .qr-code {
+            margin: 1rem auto;
+            padding: 0.5rem;
+            background: white;
+            border-radius: 4px;
+            width: 150px;
+        }
+
+        .generated-link {
+            background: #1a1a1a;
+            padding: 1rem;
+            border-radius: 4px;
+            margin-top: 1rem;
+            word-break: break-all;
+        }
+
+        /* Buttons */
+        .btn {
+            padding: 1rem;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+            border: none;
+            transition: opacity 0.3s;
+        }
+
+        .btn:hover {
+            opacity: 0.9;
+        }
+
+        .btn-primary {
+            background: var(--secondary);
+            color: var(--primary);
+        }
+
+        .btn-secondary {
+            background: var(--border-color);
+            color: var(--secondary);
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 1rem;
+            margin-top: 2rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="dashboard-container">
+        <!-- Sidebar -->
+        <div class="sidebar">
+            <div class="sidebar-header">
+                <h2>SHROUD</h2>
+                <p>Merchant Dashboard</p>
+            </div>
+            <nav class="sidebar-nav">
+                <a href="dashboard.html" class="nav-item">Dashboard</a>
+                <a href="checkout-generator.html" class="nav-item active">Checkout Generator</a>
+                <a href="customers.html" class="nav-item">Customers</a>
+                <a href="analytics.html" class="nav-item">Analytics</a>
+                <a href="settings.html" class="nav-item">Settings</a>
+            </nav>
+        </div>
+
+        <!-- Main Content -->
+        <div class="main-content">
+            <div class="header">
+                <h1>Checkout Generator</h1>
+                <button class="btn btn-secondary" onclick="logout()">Log Out</button>
+            </div>
+
+            <!-- Generator Form -->
+            <div class="generator-form">
+                <div class="form-section">
+                    <h3 class="form-section-title">Product Information</h3>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label">Product Name</label>
+                            <input type="text" class="form-control" id="productName">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Product Description</label>
+                            <input type="text" class="form-control" id="productDescription">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Product Image</label>
+                        <div class="image-upload" onclick="document.getElementById('imageUpload').click()">
+                            <i class="fas fa-cloud-upload-alt" style="font-size: 2rem; margin-bottom: 1rem;"></i>
+                            <p>Click to upload product image</p>
+                            <img id="imagePreview" class="image-preview" alt="Product Image Preview">
+                        </div>
+                        <input type="file" id="imageUpload" accept="image/*" style="display: none;" onchange="previewImage(this)">
+                    </div>
+                </div>
+
+                <div class="form-section">
+                    <h3 class="form-section-title">Payment Settings</h3>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label">Amount</label>
+                            <input type="number" class="form-control" id="productAmount" step="0.00000001">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Currency</label>
+                            <select class="form-control" id="currencySelect">
+                                <option value="btc">Bitcoin (BTC)</option>
+                                <option value="xmr">Monero (XMR)</option>
+                                <option value="eth">Ethereum (ETH)</option>
+                                <option value="sol">Solana (SOL)</option>
+                                <option value="usdt">Tether (USDT)</option>
+                                <option value="usdc">USD Coin (USDC)</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label">Your Payout Address (BTC)</label>
+                            <input type="text" class="form-control" id="btcPayoutAddress" placeholder="bc1q...">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Your Payout Address (XMR)</label>
+                            <input type="text" class="form-control" id="xmrPayoutAddress" placeholder="4...">
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label">Your Payout Address (ETH)</label>
+                            <input type="text" class="form-control" id="ethPayoutAddress" placeholder="0x...">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Your Payout Address (SOL)</label>
+                            <input type="text" class="form-control" id="solPayoutAddress" placeholder="So1...">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-section">
+                    <h3 class="form-section-title">Customer Information</h3>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label">Require Email</label>
+                            <select class="form-control" id="requireEmail">
+                                <option value="required">Required</option>
+                                <option value="optional">Optional</option>
+                                <option value="none">Not Requested</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Require Shipping Address</label>
+                            <select class="form-control" id="requireShipping">
+                                <option value="required">Required</option>
+                                <option value="optional">Optional</option>
+                                <option value="none">Not Requested</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label">Require Phone Number</label>
+                            <select class="form-control" id="requirePhone">
+                                <option value="required">Required</option>
+                                <option value="optional">Optional</option>
+                                <option value="none">Not Requested</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Require Social Media</label>
+                            <select class="form-control" id="requireSocial">
+                                <option value="required">Required</option>
+                                <option value="optional">Optional</option>
+                                <option value="none">Not Requested</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Custom Fields (comma separated)</label>
+                        <input type="text" class="form-control" id="customFields" placeholder="e.g. Discord ID, Telegram, etc.">
+                    </div>
+                </div>
+
+                <div class="form-section">
+                    <h3 class="form-section-title">Appearance</h3>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label">Primary Color</label>
+                            <div class="color-picker">
+                                <div class="color-option selected" style="background: #000000;" onclick="selectColor('000000')"></div>
+                                <div class="color-option" style="background: #111111;" onclick="selectColor('111111')"></div>
+                                <div class="color-option" style="background: #333333;" onclick="selectColor('333333')"></div>
+                                <div class="color-option" style="background: #666666;" onclick="selectColor('666666')"></div>
+                                <div class="color-option" style="background: #ffffff;" onclick="selectColor('ffffff')"></div>
+                            </div>
+                            <input type="color" id="customColor" class="form-control" style="margin-top: 1rem; height: 40px; padding: 0;">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Background Color</label>
+                            <div class="color-picker">
+                                <div class="color-option" style="background: #000000;" onclick="selectBgColor('000000')"></div>
+                                <div class="color-option selected" style="background: #111111;" onclick="selectBgColor('111111')"></div>
+                                <div class="color-option" style="background: #1a1a1a;" onclick="selectBgColor('1a1a1a')"></div>
+                                <div class="color-option" style="background: #ffffff;" onclick="selectBgColor('ffffff')"></div>
+                            </div>
+                            <input type="color" id="customBgColor" class="form-control" style="margin-top: 1rem; height: 40px; padding: 0;">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Your Logo</label>
+                        <div class="image-upload" onclick="document.getElementById('logoUpload').click()">
+                            <i class="fas fa-cloud-upload-alt" style="font-size: 2rem; margin-bottom: 1rem;"></i>
+                            <p>Click to upload your logo</p>
+                            <img id="logoPreview" class="image-preview" alt="Logo Preview">
+                        </div>
+                        <input type="file" id="logoUpload" accept="image/*" style="display: none;" onchange="previewLogo(this)">
+                    </div>
+                </div>
+
+                <div class="btn-group">
+                    <button class="btn btn-primary" onclick="generateCheckout()">Generate Checkout Link</button>
+                    <button class="btn btn-secondary" onclick="resetForm()">Reset Form</button>
+                </div>
+            </div>
+
+            <!-- Generated Preview -->
+            <div class="preview-container" id="previewContainer" style="display: none;">
+                <div class="preview-header">
+                    <img id="previewLogo" class="preview-logo" alt="Merchant Logo">
+                    <h2>Checkout Link Generated</h2>
+                    <p>Share this link with your customers</p>
+                </div>
+                <div class="generated-link" id="generatedLink"></div>
+                <div class="qr-code" id="qrCode"></div>
+                <div class="btn-group">
+                    <button class="btn btn-primary" onclick="copyLink()">Copy Link</button>
+                    <button class="btn btn-secondary" onclick="testCheckout()">Test Checkout</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Check authentication
+        const currentUser = JSON.parse(localStorage.getItem('shroud_currentUser'));
+        if (!currentUser) {
+            window.location.href = 'auth.html#login';
+        }
+
+        // Selected colors
+        let primaryColor = '#000000';
+        let backgroundColor = '#111111';
+
+        function selectColor(hex) {
+            primaryColor = `#${hex}`;
+            document.querySelectorAll('.color-picker .color-option').forEach(el => {
+                el.classList.remove('selected');
+            });
+            event.currentTarget.classList.add('selected');
+            document.getElementById('customColor').value = primaryColor;
+        }
+
+        function selectBgColor(hex) {
+            backgroundColor = `#${hex}`;
+            document.querySelectorAll('.color-picker .color-option').forEach(el => {
+                el.classList.remove('selected');
+            });
+            event.currentTarget.classList.add('selected');
+            document.getElementById('customBgColor').value = backgroundColor;
+        }
+
+        // Color picker change handlers
+        document.getElementById('customColor').addEventListener('input', function() {
+            primaryColor = this.value;
+        });
+
+        document.getElementById('customBgColor').addEventListener('input', function() {
+            backgroundColor = this.value;
+        });
+
+        // Image preview functions
+        function previewImage(input) {
+            const preview = document.getElementById('imagePreview');
+            if (input.files && input.files[0]) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    preview.src = e.target.result;
+                    preview.style.display = 'block';
+                }
+                reader.readAsDataURL(input.files[0]);
+            }
+        }
+
+        function previewLogo(input) {
+            const preview = document.getElementById('logoPreview');
+            if (input.files && input.files[0]) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    preview.src = e.target.result;
+                    preview.style.display = 'block';
+                }
+                reader.readAsDataURL(input.files[0]);
+            }
+        }
+
+        // Generate checkout link
+        function generateCheckout() {
+            // Validate required fields
+            const productName = document.getElementById('productName').value;
+            const amount = document.getElementById('productAmount').value;
+            const currency = document.getElementById('currencySelect').value;
+            
+            if (!productName || !amount) {
+                alert('Please fill in all required fields');
+                return;
+            }
+
+            // Get payout address for selected currency
+            let payoutAddress;
+            switch(currency) {
+                case 'btc':
+                    payoutAddress = document.getElementById('btcPayoutAddress').value;
+                    break;
+                case 'xmr':
+                    payoutAddress = document.getElementById('xmrPayoutAddress').value;
+                    break;
+                case 'eth':
+                    payoutAddress = document.getElementById('ethPayoutAddress').value;
+                    break;
+                case 'sol':
+                    payoutAddress = document.getElementById('solPayoutAddress').value;
+                    break;
+                default:
+                    payoutAddress = '';
+            }
+
+            if (!payoutAddress) {
+                alert(`Please enter your ${currency.toUpperCase()} payout address`);
+                return;
+            }
+
+            // Create checkout config object
+            const checkoutConfig = {
+                product: {
+                    name: productName,
+                    description: document.getElementById('productDescription').value,
+                    amount: parseFloat(amount),
+                    currency: currency,
+                    image: document.getElementById('imagePreview').src || ''
+                },
+                payoutAddresses: {
+                    btc: document.getElementById('btcPayoutAddress').value,
+                    xmr: document.getElementById('xmrPayoutAddress').value,
+                    eth: document.getElementById('ethPayoutAddress').value,
+                    sol: document.getElementById('solPayoutAddress').value
+                },
+                customerInfo: {
+                    requireEmail: document.getElementById('requireEmail').value,
+                    requireShipping: document.getElementById('requireShipping').value,
+                    requirePhone: document.getElementById('requirePhone').value,
+                    requireSocial: document.getElementById('requireSocial').value,
+                    customFields: document.getElementById('customFields').value.split(',').map(f => f.trim()).filter(f => f)
+                },
+                appearance: {
+                    primaryColor: primaryColor,
+                    backgroundColor: backgroundColor,
+                    logo: document.getElementById('logoPreview').src || ''
+                }
+            };
+
+            // Generate a unique ID for this checkout
+            const checkoutId = 'ch_' + Math.random().toString(36).substr(2, 9);
+            
+            // Save to localStorage (in a real app, this would go to a backend)
+            let checkouts = JSON.parse(localStorage.getItem('shroud_checkouts')) || {};
+            checkouts[checkoutId] = checkoutConfig;
+            localStorage.setItem('shroud_checkouts', JSON.stringify(checkouts));
+
+            // Generate the checkout link
+            const checkoutLink = `${window.location.origin}/checkout.html?id=${checkoutId}`;
+            
+            // Display the generated link
+            document.getElementById('generatedLink').textContent = checkoutLink;
+            
+            // Generate QR code
+            const qrElement = document.getElementById('qrCode');
+            qrElement.innerHTML = '';
+            new QRCode(qrElement, {
+                text: checkoutLink,
+                width: 150,
+                height: 150
+            });
+
+            // Show preview section
+            document.getElementById('previewContainer').style.display = 'block';
+            document.getElementById('previewLogo').src = checkoutConfig.appearance.logo;
+            
+            // Scroll to preview
+            document.getElementById('previewContainer').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        function copyLink() {
+            const link = document.getElementById('generatedLink').textContent;
+            navigator.clipboard.writeText(link);
+            alert('Checkout link copied to clipboard!');
+        }
+
+        function testCheckout() {
+            const link = document.getElementById('generatedLink').textContent;
+            window.open(link, '_blank');
+        }
+
+        function resetForm() {
+            document.querySelectorAll('input[type="text"], input[type="number"]').forEach(input => {
+                input.value = '';
+            });
+            document.getElementById('imagePreview').style.display = 'none';
+            document.getElementById('logoPreview').style.display = 'none';
+            document.getElementById('previewContainer').style.display = 'none';
+        }
+
+        function logout() {
+            localStorage.removeItem('shroud_currentUser');
+            window.location.href = 'auth.html#login';
+        }
+    </script>
+</body>
+</html>
