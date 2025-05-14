@@ -3,8 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SHROUD - Private Crypto Payments</title>
+    <title>SHROUD - Private Crypto Payments for High-Risk Businesses</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
         :root {
             --primary: #000;
@@ -88,6 +89,7 @@
             font-weight: 600;
             cursor: pointer;
             transition: var(--transition);
+            font-family: 'Inter', sans-serif;
         }
 
         .btn-primary {
@@ -114,6 +116,11 @@
             text-align: center;
             padding: 6rem 0;
             position: relative;
+        }
+
+        h1, h2, h3 {
+            font-family: 'Inter', sans-serif;
+            font-weight: 700;
         }
 
         h1 {
@@ -162,6 +169,74 @@
             font-size: 2rem;
             margin-bottom: 1.5rem;
             color: var(--accent);
+        }
+
+        /* Pricing Section */
+        .pricing {
+            text-align: center;
+            padding: 5rem 0;
+            border-top: 1px solid #333;
+            border-bottom: 1px solid #333;
+        }
+
+        .pricing-cards {
+            display: flex;
+            justify-content: center;
+            gap: 2rem;
+            margin-top: 3rem;
+            flex-wrap: wrap;
+        }
+
+        .pricing-card {
+            background: rgba(255,255,255,0.03);
+            border: 1px solid #333;
+            border-radius: 8px;
+            padding: 2.5rem;
+            width: 300px;
+            transition: var(--transition);
+        }
+
+        .pricing-card:hover {
+            border-color: var(--accent);
+        }
+
+        .pricing-card h3 {
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .price {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 1.5rem;
+            color: var(--accent);
+        }
+
+        .price span {
+            font-size: 1rem;
+            color: #aaa;
+        }
+
+        /* High Risk Section */
+        .high-risk {
+            padding: 5rem 0;
+            text-align: center;
+        }
+
+        .high-risk-content {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .high-risk-badge {
+            display: inline-block;
+            background: rgba(255,0,0,0.1);
+            color: #ff4444;
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-weight: 600;
+            margin-bottom: 1.5rem;
+            border: 1px solid #ff4444;
         }
 
         /* Mobile Menu */
@@ -246,11 +321,13 @@
     <div class="mobile-menu" id="mobileMenu">
         <div class="nav-links">
             <a href="#features">Features</a>
+            <a href="#pricing">Pricing</a>
+            <a href="#high-risk">High-Risk</a>
             <a href="#contact">Contact</a>
         </div>
         <div class="auth-buttons">
-            <button class="btn btn-primary" onclick="location.href='auth.html#signup'">Sign Up</button>
-            <button class="btn btn-outline" onclick="location.href='auth.html#login'">Login</button>
+            <button class="btn btn-primary" onclick="location.href='dashboard.html#signup'">Sign Up</button>
+            <button class="btn btn-outline" onclick="location.href='dashboard.html#login'">Login</button>
         </div>
     </div>
 
@@ -261,10 +338,12 @@
         </button>
         <div class="nav-links">
             <a href="#features">Features</a>
+            <a href="#pricing">Pricing</a>
+            <a href="#high-risk">High-Risk</a>
             <a href="#contact">Contact</a>
             <div class="auth-buttons">
-                <button class="btn btn-primary" onclick="location.href='auth.html#signup'">Sign Up</button>
-                <button class="btn btn-outline" onclick="location.href='auth.html#login'">Login</button>
+                <button class="btn btn-primary" onclick="location.href='dashboard.html#signup'">Sign Up</button>
+                <button class="btn btn-outline" onclick="location.href='dashboard.html#login'">Login</button>
             </div>
         </div>
     </nav>
@@ -272,15 +351,15 @@
     <section class="hero container">
         <h1>Private Crypto Payments</h1>
         <p class="subhead">
-            Zero-KYC cryptocurrency processor with automatic data destruction.
-            Accept Bitcoin, Monero and Ethereum with 1% fees.
+            Zero-KYC cryptocurrency payment gateway with automatic data destruction.
+            Accept Bitcoin, Monero and Ethereum with just 1% fees. Perfect for high-risk businesses.
         </p>
         <div class="cta-buttons">
-            <button class="btn btn-primary" onclick="location.href='auth.html#signup'">
-                Get Started
+            <button class="btn btn-primary" onclick="location.href='dashboard.html#signup'">
+                Get Started - It's Free
             </button>
-            <button class="btn btn-outline" onclick="location.href='auth.html#login'">
-                Existing User? Login
+            <button class="btn btn-outline" onclick="location.href='dashboard.html#login'">
+                Merchant Login
             </button>
         </div>
     </section>
@@ -292,7 +371,7 @@
                     <i class="fas fa-user-secret"></i>
                 </div>
                 <h3>No Identity Checks</h3>
-                <p>We never ask for personal information. Start accepting payments in seconds.</p>
+                <p>We never ask for personal information. Start accepting payments in seconds with complete anonymity.</p>
             </div>
             
             <div class="feature-card">
@@ -300,7 +379,15 @@
                     <i class="fas fa-trash"></i>
                 </div>
                 <h3>Auto Data Deletion</h3>
-                <p>All transaction data permanently erased after 72 hours.</p>
+                <p>All transaction data permanently erased after 72 hours. No logs, no records.</p>
+            </div>
+
+            <div class="feature-card">
+                <div class="feature-icon">
+                    <i class="fas fa-shield-alt"></i>
+                </div>
+                <h3>High-Risk Friendly</h3>
+                <p>We welcome businesses that traditional processors reject. No judgment, just payments.</p>
             </div>
 
             <div class="feature-card">
@@ -308,20 +395,74 @@
                     <i class="fas fa-paint-brush"></i>
                 </div>
                 <h3>Custom Checkouts</h3>
-                <p>Brand your payment pages with custom domains and styling.</p>
+                <p>Brand your payment pages with custom domains and styling options.</p>
             </div>
+
+            <div class="feature-card">
+                <div class="feature-icon">
+                    <i class="fas fa-headset"></i>
+                </div>
+                <h3>24/7 Support</h3>
+                <p>Anonymous support available round the clock via encrypted Telegram channels.</p>
+            </div>
+
+            <div class="feature-card">
+                <div class="feature-icon">
+                    <i class="fas fa-lock"></i>
+                </div>
+                <h3>Secure Payouts</h3>
+                <p>Automatic withdrawals to your wallet with multi-signature security.</p>
+            </div>
+        </div>
+    </section>
+
+    <section class="pricing container" id="pricing">
+        <h2>Simple, Transparent Pricing</h2>
+        <p class="subhead">No hidden fees, no monthly commitments. Pay only when you get paid.</p>
+        
+        <div class="pricing-cards">
+            <div class="pricing-card">
+                <h3>Standard</h3>
+                <div class="price">1% <span>per transaction</span></div>
+                <p>No setup fees</p>
+                <p>No monthly fees</p>
+                <p>All features included</p>
+                <button class="btn btn-primary" onclick="location.href='dashboard.html#signup'" style="margin-top: 1.5rem;">
+                    Start Now
+                </button>
+            </div>
+        </div>
+    </section>
+
+    <section class="high-risk container" id="high-risk">
+        <div class="high-risk-content">
+            <div class="high-risk-badge">High-Risk Businesses Welcome</div>
+            <h2>Banned by Stripe, PayPal or others? We've got you covered.</h2>
+            <p class="subhead" style="margin-bottom: 2rem;">
+                SHROUD specializes in payment processing for industries that traditional financial services reject.
+                Whether you're in adult content, gaming, CBD, or other restricted sectors, we provide
+                reliable payment processing with complete discretion.
+            </p>
+            <button class="btn btn-outline" onclick="location.href='dashboard.html#signup'">
+                Get Started Risk-Free
+            </button>
         </div>
     </section>
 
     <section class="container" id="contact">
         <div class="feature-card" style="text-align: center; max-width: 800px; margin: 0 auto;">
-            <h3>Need Assistance?</h3>
-            <p>Contact our anonymous support team via encrypted channels</p>
+            <h3>24/7 Anonymous Support</h3>
+            <p>Our team is available around the clock via encrypted Telegram for any questions or assistance.</p>
             <a href="https://t.me/shroudpay_support" target="_blank" style="color: var(--accent); text-decoration: none; margin-top: 1rem; display: inline-block;">
-                <i class="fab fa-telegram"></i> @shroudpay_support
+                <i class="fab fa-telegram"></i> @shroudpay_support (24/7)
             </a>
         </div>
     </section>
+
+    <footer class="container" style="padding: 3rem 0; text-align: center; border-top: 1px solid #333; margin-top: 3rem;">
+        <p>© 2023 SHROUD. All rights reserved.</p>
+        <p style="color: #666; margin-top: 0.5rem;">Private cryptocurrency payment processing</p>
+    </footer>
 
     <script>
         // Mobile menu toggle
