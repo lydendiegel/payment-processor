@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard - SHROUD</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
         :root {
             --primary: #000000;
@@ -12,6 +13,10 @@
             --background: #111111;
             --card-bg: #1a1a1a;
             --border-color: #333333;
+            --accent: #10ff80;
+            --danger: #ff4444;
+            --warning: #ffbb33;
+            --transition: all 0.3s ease;
         }
 
         * {
@@ -38,26 +43,42 @@
             background: var(--background);
             padding: 2rem;
             border-right: 1px solid var(--border-color);
+            position: sticky;
+            top: 0;
+            height: 100vh;
         }
 
         .sidebar-header {
             margin-bottom: 2rem;
         }
 
+        .sidebar-header h2 {
+            font-size: 1.5rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .sidebar-header p {
+            color: #aaa;
+            font-size: 0.9rem;
+        }
+
         .sidebar-nav {
             display: flex;
             flex-direction: column;
-            gap: 1rem;
+            gap: 0.5rem;
         }
 
         .nav-item {
             padding: 0.8rem;
             border-radius: 6px;
             cursor: pointer;
-            transition: all 0.3s ease;
+            transition: var(--transition);
             color: var(--secondary);
             text-decoration: none;
-            display: block;
+            display: flex;
+            align-items: center;
+            gap: 0.8rem;
+            font-size: 0.95rem;
         }
 
         .nav-item:hover {
@@ -66,12 +87,18 @@
 
         .nav-item.active {
             background: rgba(255,255,255,0.2);
-            font-weight: bold;
+            font-weight: 600;
+        }
+
+        .nav-item i {
+            width: 20px;
+            text-align: center;
         }
 
         /* Main Content */
         .main-content {
             padding: 2rem;
+            background: var(--primary);
         }
 
         .header {
@@ -79,8 +106,58 @@
             justify-content: space-between;
             align-items: center;
             margin-bottom: 2rem;
+            flex-wrap: wrap;
+            gap: 1rem;
         }
 
+        .header h1 {
+            font-size: 1.8rem;
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 1rem;
+        }
+
+        .btn {
+            padding: 0.6rem 1.2rem;
+            border-radius: 6px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+            border: none;
+            font-size: 0.9rem;
+        }
+
+        .btn-primary {
+            background: var(--secondary);
+            color: var(--primary);
+        }
+
+        .btn-primary:hover {
+            opacity: 0.9;
+        }
+
+        .btn-outline {
+            background: transparent;
+            color: var(--secondary);
+            border: 1px solid var(--secondary);
+        }
+
+        .btn-outline:hover {
+            background: rgba(255,255,255,0.1);
+        }
+
+        .btn-danger {
+            background: var(--danger);
+            color: var(--secondary);
+        }
+
+        .btn-danger:hover {
+            opacity: 0.9;
+        }
+
+        /* Stats */
         .stats-container {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
@@ -93,46 +170,205 @@
             padding: 1.5rem;
             border-radius: 8px;
             border: 1px solid var(--border-color);
+            transition: var(--transition);
+        }
+
+        .stat-card:hover {
+            border-color: var(--accent);
+        }
+
+        .stat-label {
+            color: #aaa;
+            font-size: 0.9rem;
+            margin-bottom: 0.5rem;
         }
 
         .stat-value {
-            font-size: 2rem;
+            font-size: 1.8rem;
             font-weight: bold;
             color: var(--secondary);
         }
 
-        /* Customers Table */
-        .customers-table {
+        .stat-change {
+            font-size: 0.8rem;
+            margin-top: 0.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.3rem;
+        }
+
+        .stat-change.positive {
+            color: var(--accent);
+        }
+
+        .stat-change.negative {
+            color: var(--danger);
+        }
+
+        /* Charts */
+        .chart-container {
+            background: var(--card-bg);
+            padding: 1.5rem;
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+            margin-bottom: 2rem;
+            height: 350px;
+            position: relative;
+        }
+
+        .chart-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .chart-title {
+            font-weight: 600;
+        }
+
+        .chart-actions {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .chart-timeframe {
+            background: var(--background);
+            border: 1px solid var(--border-color);
+            padding: 0.3rem 0.6rem;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            cursor: pointer;
+        }
+
+        .chart-timeframe.active {
+            background: var(--accent);
+            color: var(--primary);
+            border-color: var(--accent);
+        }
+
+        /* Recent Transactions */
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin: 2rem 0 1rem;
+        }
+
+        .section-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+        }
+
+        .transactions-table {
             width: 100%;
             border-collapse: collapse;
             background: var(--card-bg);
             border-radius: 8px;
             overflow: hidden;
+            border: 1px solid var(--border-color);
         }
 
-        .customers-table th,
-        .customers-table td {
+        .transactions-table th,
+        .transactions-table td {
             padding: 1rem;
             text-align: left;
             border-bottom: 1px solid var(--border-color);
         }
 
-        .customers-table th {
+        .transactions-table th {
             background: var(--background);
+            font-weight: 600;
+            font-size: 0.9rem;
         }
 
-        .logout-btn {
-            background: var(--secondary);
-            color: var(--primary);
-            border: none;
-            padding: 0.5rem 1rem;
+        .transactions-table tr:last-child td {
+            border-bottom: none;
+        }
+
+        .transactions-table tr:hover td {
+            background: rgba(255,255,255,0.03);
+        }
+
+        .transaction-status {
+            display: inline-block;
+            padding: 0.3rem 0.6rem;
             border-radius: 4px;
-            cursor: pointer;
-            font-weight: bold;
+            font-size: 0.8rem;
+            font-weight: 500;
         }
 
-        .logout-btn:hover {
-            opacity: 0.9;
+        .status-completed {
+            background: rgba(16, 255, 128, 0.1);
+            color: var(--accent);
+        }
+
+        .status-pending {
+            background: rgba(255, 187, 51, 0.1);
+            color: var(--warning);
+        }
+
+        .status-failed {
+            background: rgba(255, 68, 68, 0.1);
+            color: var(--danger);
+        }
+
+        .currency-amount {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .currency-icon {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.7rem;
+            background: rgba(255,255,255,0.1);
+        }
+
+        /* Responsive */
+        @media (max-width: 992px) {
+            .dashboard-container {
+                grid-template-columns: 1fr;
+            }
+
+            .sidebar {
+                height: auto;
+                position: static;
+                border-right: none;
+                border-bottom: 1px solid var(--border-color);
+            }
+
+            .sidebar-nav {
+                flex-direction: row;
+                flex-wrap: wrap;
+            }
+
+            .nav-item {
+                padding: 0.6rem 0.8rem;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .header {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .header-actions {
+                width: 100%;
+                justify-content: space-between;
+            }
+
+            .transactions-table {
+                display: block;
+                overflow-x: auto;
+                white-space: nowrap;
+            }
         }
     </style>
 </head>
@@ -145,84 +381,120 @@
                 <p>Merchant Dashboard</p>
             </div>
             <nav class="sidebar-nav">
-                <a href="dashboard.html" class="nav-item active">Dashboard</a>
-                <a href="checkout-generator.html" class="nav-item">Checkout Generator</a>
-                <a href="customers.html" class="nav-item">Customers</a>
-                <a href="analytics.html" class="nav-item">Analytics</a>
-                <a href="settings.html" class="nav-item">Settings</a>
+                <a href="dashboard.html" class="nav-item active">
+                    <i class="fas fa-chart-line"></i> Dashboard
+                </a>
+                <a href="checkout-generator.html" class="nav-item">
+                    <i class="fas fa-link"></i> Checkout Generator
+                </a>
+                <a href="payments.html" class="nav-item">
+                    <i class="fas fa-exchange-alt"></i> Transactions
+                </a>
+                <a href="customers.html" class="nav-item">
+                    <i class="fas fa-users"></i> Customers
+                </a>
+                <a href="payouts.html" class="nav-item">
+                    <i class="fas fa-wallet"></i> Payouts
+                </a>
+                <a href="analytics.html" class="nav-item">
+                    <i class="fas fa-chart-pie"></i> Analytics
+                </a>
+                <a href="settings.html" class="nav-item">
+                    <i class="fas fa-cog"></i> Settings
+                </a>
             </nav>
         </div>
 
         <!-- Main Content -->
         <div class="main-content">
             <div class="header">
-                <h1>Dashboard</h1>
-                <button class="logout-btn" onclick="logout()">Log Out</button>
+                <h1>Dashboard Overview</h1>
+                <div class="header-actions">
+                    <button class="btn btn-primary" onclick="location.href='checkout-generator.html'">
+                        <i class="fas fa-plus"></i> Create Checkout
+                    </button>
+                    <button class="btn btn-outline" onclick="location.href='payouts.html'">
+                        <i class="fas fa-wallet"></i> Request Payout
+                    </button>
+                    <button class="btn btn-danger" onclick="logout()">
+                        <i class="fas fa-sign-out-alt"></i> Log Out
+                    </button>
+                </div>
             </div>
 
             <!-- Stats -->
             <div class="stats-container">
                 <div class="stat-card">
                     <div class="stat-label">Today's Earnings</div>
-                    <div class="stat-value">$0.00</div>
+                    <div class="stat-value" id="todayEarnings">$0.00</div>
+                    <div class="stat-change positive">
+                        <i class="fas fa-arrow-up"></i> 0% from yesterday
+                    </div>
                 </div>
                 <div class="stat-card">
-                    <div class="stat-label">Total Customers</div>
-                    <div class="stat-value">0</div>
+                    <div class="stat-label">Total Balance</div>
+                    <div class="stat-value" id="totalBalance">$0.00</div>
+                    <div class="stat-change positive">
+                        <i class="fas fa-arrow-up"></i> 0% from last week
+                    </div>
                 </div>
                 <div class="stat-card">
-                    <div class="stat-label">Avg. Payment</div>
-                    <div class="stat-value">$0.00</div>
+                    <div class="stat-label">Transactions</div>
+                    <div class="stat-value" id="totalTransactions">0</div>
+                    <div class="stat-change positive">
+                        <i class="fas fa-arrow-up"></i> 0% from last week
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Conversion Rate</div>
+                    <div class="stat-value" id="conversionRate">0%</div>
+                    <div class="stat-change negative">
+                        <i class="fas fa-arrow-down"></i> 0% from last week
+                    </div>
                 </div>
             </div>
 
-            <!-- Recent Customers Table -->
-            <h2 style="margin: 2rem 0 1rem 0">Recent Customers</h2>
-            <table class="customers-table">
+            <!-- Earnings Chart -->
+            <div class="chart-container">
+                <div class="chart-header">
+                    <div class="chart-title">Earnings (Last 30 Days)</div>
+                    <div class="chart-actions">
+                        <span class="chart-timeframe active">30D</span>
+                        <span class="chart-timeframe">7D</span>
+                        <span class="chart-timeframe">24H</span>
+                    </div>
+                </div>
+                <canvas id="earningsChart"></canvas>
+            </div>
+
+            <!-- Recent Transactions -->
+            <div class="section-header">
+                <div class="section-title">Recent Transactions</div>
+                <a href="payments.html" style="color: var(--accent); text-decoration: none; font-size: 0.9rem;">
+                    View All <i class="fas fa-arrow-right"></i>
+                </a>
+            </div>
+            <table class="transactions-table" id="transactionsTable">
                 <thead>
                     <tr>
-                        <th>Email</th>
-                        <th>Contact Method</th>
+                        <th>ID</th>
+                        <th>Customer</th>
                         <th>Amount</th>
+                        <th>Currency</th>
+                        <th>Status</th>
                         <th>Date</th>
+                        <th>IP</th>
                     </tr>
                 </thead>
-                <tbody id="customersList">
-                    <tr>
-                        <td>user1@example.com</td>
-                        <td>@user1</td>
-                        <td>0.1336 BTC</td>
-                        <td>5/13/2025</td>
-                    </tr>
-                    <tr>
-                        <td>user2@example.com</td>
-                        <td>@user2</td>
-                        <td>0.5090 BTC</td>
-                        <td>5/13/2025</td>
-                    </tr>
-                    <tr>
-                        <td>user3@example.com</td>
-                        <td>@user3</td>
-                        <td>0.2137 BTC</td>
-                        <td>5/13/2025</td>
-                    </tr>
-                    <tr>
-                        <td>user4@example.com</td>
-                        <td>@user4</td>
-                        <td>0.2604 BTC</td>
-                        <td>5/13/2025</td>
-                    </tr>
-                    <tr>
-                        <td>user5@example.com</td>
-                        <td>@user5</td>
-                        <td>0.4739 BTC</td>
-                        <td>5/13/2025</td>
-                    </tr>
+                <tbody>
+                    <!-- Transactions will be loaded here -->
                 </tbody>
             </table>
         </div>
     </div>
 
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
         // Check authentication
         const currentUser = JSON.parse(localStorage.getItem('shroud_currentUser'));
@@ -230,9 +502,11 @@
             window.location.href = 'auth.html#login';
         }
 
-        function logout() {
-            localStorage.removeItem('shroud_currentUser');
-            window.location.href = 'auth.html#login';
+        // Initialize dashboard data
+        function initDashboard() {
+            updateStats();
+            renderTransactions();
+            initCharts();
         }
 
         // Update stats from localStorage
@@ -240,26 +514,185 @@
             const payments = JSON.parse(localStorage.getItem('shroud_payments')) || [];
             const customers = JSON.parse(localStorage.getItem('shroud_customers')) || [];
             
+            // Today's earnings (last 24 hours)
             const todayEarnings = payments
-                .filter(p => new Date(p.date).toDateString() === new Date().toDateString())
-                .reduce((sum, p) => sum + p.amount, 0)
-                .toFixed(2);
+                .filter(p => new Date(p.date) > new Date(Date.now() - 24 * 60 * 60 * 1000))
+                .reduce((sum, p) => sum + p.amount, 0);
                 
-            const totalEarnings = payments
-                .reduce((sum, p) => sum + p.amount, 0)
-                .toFixed(2);
+            // Yesterday's earnings (previous 24 hours)
+            const yesterdayEarnings = payments
+                .filter(p => new Date(p.date) > new Date(Date.now() - 48 * 60 * 60 * 1000) && 
+                            new Date(p.date) <= new Date(Date.now() - 24 * 60 * 60 * 1000))
+                .reduce((sum, p) => sum + p.amount, 0);
                 
-            const avgPayment = payments.length > 0 
-                ? (totalEarnings / payments.length).toFixed(2) 
-                : '0.00';
+            // Total balance
+            const totalBalance = payments.reduce((sum, p) => sum + p.amount, 0) * 0.99; // 1% fee
             
-            document.querySelectorAll('.stat-card')[0].querySelector('.stat-value').textContent = `$${todayEarnings}`;
-            document.querySelectorAll('.stat-card')[1].querySelector('.stat-value').textContent = customers.length;
-            document.querySelectorAll('.stat-card')[2].querySelector('.stat-value').textContent = `$${avgPayment}`;
+            // Conversion rate (placeholder - would need more data)
+            const conversionRate = payments.length > 0 ? Math.min(100, Math.round((payments.length / (payments.length + 10)) * 100)) : 0;
+            
+            // Update DOM
+            document.getElementById('todayEarnings').textContent = `$${todayEarnings.toFixed(2)}`;
+            document.getElementById('totalBalance').textContent = `$${totalBalance.toFixed(2)}`;
+            document.getElementById('totalTransactions').textContent = payments.length;
+            document.getElementById('conversionRate').textContent = `${conversionRate}%`;
+            
+            // Update change indicators
+            const todayChange = yesterdayEarnings > 0 ? 
+                ((todayEarnings - yesterdayEarnings) / yesterdayEarnings * 100).toFixed(1) : 0;
+            
+            document.querySelectorAll('.stat-change')[0].innerHTML = yesterdayEarnings > 0 ?
+                `<i class="fas fa-arrow-${todayChange >= 0 ? 'up' : 'down'}"></i> ${Math.abs(todayChange)}% from yesterday` :
+                `No previous data`;
+                
+            document.querySelectorAll('.stat-change')[0].className = yesterdayEarnings > 0 ?
+                `stat-change ${todayChange >= 0 ? 'positive' : 'negative'}` :
+                `stat-change`;
         }
 
-        // Initial load
-        updateStats();
+        // Render transactions table
+        function renderTransactions() {
+            const payments = JSON.parse(localStorage.getItem('shroud_payments')) || [];
+            const tbody = document.querySelector('#transactionsTable tbody');
+            tbody.innerHTML = '';
+            
+            // Sort by date (newest first)
+            const sortedPayments = [...payments].sort((a, b) => new Date(b.date) - new Date(a.date));
+            
+            // Show last 10 transactions
+            sortedPayments.slice(0, 10).forEach(payment => {
+                const tr = document.createElement('tr');
+                
+                // Format date
+                const paymentDate = new Date(payment.date);
+                const formattedDate = paymentDate.toLocaleDateString() + ' ' + paymentDate.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+                
+                // Determine status
+                let statusClass, statusText;
+                if (payment.status === 'completed') {
+                    statusClass = 'status-completed';
+                    statusText = 'Completed';
+                } else if (payment.status === 'pending') {
+                    statusClass = 'status-pending';
+                    statusText = 'Pending';
+                } else {
+                    statusClass = 'status-failed';
+                    statusText = 'Failed';
+                }
+                
+                // Get currency icon
+                let currencyIcon;
+                switch(payment.currency.toLowerCase()) {
+                    case 'btc': currencyIcon = '<i class="fab fa-bitcoin"></i>'; break;
+                    case 'xmr': currencyIcon = '<i class="fas fa-coins"></i>'; break;
+                    case 'eth': currencyIcon = '<i class="fab fa-ethereum"></i>'; break;
+                    default: currencyIcon = '<i class="fas fa-coins"></i>';
+                }
+                
+                tr.innerHTML = `
+                    <td>${payment.id.substring(0, 8)}...</td>
+                    <td>${payment.customer?.email || payment.customer?.contact || 'Anonymous'}</td>
+                    <td>${payment.amount.toFixed(8)}</td>
+                    <td>${payment.currency.toUpperCase()}</td>
+                    <td><span class="transaction-status ${statusClass}">${statusText}</span></td>
+                    <td>${formattedDate}</td>
+                    <td>${payment.customer?.ip || 'N/A'}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+            
+            if (payments.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="7" style="text-align: center; padding: 2rem; color: #aaa;">
+                            No transactions yet. Create your first checkout to get started.
+                        </td>
+                    </tr>
+                `;
+            }
+        }
+
+        // Initialize charts
+        function initCharts() {
+            const payments = JSON.parse(localStorage.getItem('shroud_payments')) || [];
+            const ctx = document.getElementById('earningsChart').getContext('2d');
+            
+            // Group payments by day for last 30 days
+            const days = [];
+            const earningsData = [];
+            const now = new Date();
+            
+            for (let i = 29; i >= 0; i--) {
+                const date = new Date(now);
+                date.setDate(date.getDate() - i);
+                const dateStr = date.toLocaleDateString([], { month: 'short', day: 'numeric' });
+                days.push(dateStr);
+                
+                const dayEarnings = payments
+                    .filter(p => {
+                        const pDate = new Date(p.date);
+                        return pDate.getDate() === date.getDate() && 
+                               pDate.getMonth() === date.getMonth() && 
+                               pDate.getFullYear() === date.getFullYear();
+                    })
+                    .reduce((sum, p) => sum + p.amount, 0);
+                    
+                earningsData.push(dayEarnings);
+            }
+            
+            new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: days,
+                    datasets: [{
+                        label: 'Earnings ($)',
+                        data: earningsData,
+                        borderColor: '#10ff80',
+                        backgroundColor: 'rgba(16, 255, 128, 0.1)',
+                        borderWidth: 2,
+                        fill: true,
+                        tension: 0.4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            grid: {
+                                color: 'rgba(255, 255, 255, 0.1)'
+                            },
+                            ticks: {
+                                color: '#aaa'
+                            }
+                        },
+                        x: {
+                            grid: {
+                                display: false
+                            },
+                            ticks: {
+                                color: '#aaa'
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        // Logout function
+        function logout() {
+            localStorage.removeItem('shroud_currentUser');
+            window.location.href = 'auth.html#login';
+        }
+
+        // Initialize dashboard when page loads
+        document.addEventListener('DOMContentLoaded', initDashboard);
     </script>
 </body>
 </html>
