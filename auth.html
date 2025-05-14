@@ -110,27 +110,36 @@
             font-weight: bold;
             cursor: pointer;
             transition: var(--transition);
+            margin-top: 1rem;
         }
 
         button:hover {
             opacity: 0.9;
         }
 
-        .terminal-effect {
-            text-shadow: 0 0 8px rgba(255,255,255,0.1);
+        .success-message {
+            color: var(--accent);
+            text-align: center;
+            margin: 1rem 0;
+            display: none;
         }
     </style>
 </head>
 <body>
     <div class="auth-container">
         <div class="auth-header">
-            <div class="logo terminal-effect">SHROUD</div>
+            <div class="logo">SHROUD</div>
             <p>Private cryptocurrency payments</p>
         </div>
 
         <div class="auth-tabs">
             <div class="auth-tab active" onclick="showForm('login')">Login</div>
             <div class="auth-tab" onclick="showForm('signup')">Sign Up</div>
+        </div>
+
+        <!-- Success Message (hidden by default) -->
+        <div class="success-message" id="successMessage">
+            Account created successfully! Please login.
         </div>
 
         <!-- Login Form -->
@@ -172,6 +181,9 @@
 
         // Show selected form
         function showForm(formType) {
+            // Hide success message when switching tabs
+            document.getElementById('successMessage').style.display = 'none';
+            
             document.querySelectorAll('.auth-tab').forEach(tab => {
                 tab.classList.remove('active');
             });
@@ -225,9 +237,15 @@
             users.push(newUser);
             localStorage.setItem('shroud_users', JSON.stringify(users));
 
-            // Login the user
-            localStorage.setItem('shroud_currentUser', JSON.stringify(newUser));
-            window.location.href = '/dashboard.html';
+            // Show success message and switch to login
+            document.getElementById('successMessage').style.display = 'block';
+            showForm('login');
+            
+            // Pre-fill login email
+            document.getElementById('loginEmail').value = email;
+            document.getElementById('signupEmail').value = '';
+            document.getElementById('signupPassword').value = '';
+            document.getElementById('confirmPassword').value = '';
         }
 
         // Login function
@@ -253,9 +271,9 @@
                 return;
             }
 
-            // Login the user
-            localStorage.setItem('shroud_currentUser', JSON.stringify(user));
-            window.location.href = '/dashboard.html';
+            // In the final version, this would redirect to dashboard.html
+            alert('Login successful! Redirecting to dashboard...');
+            // window.location.href = '/dashboard.html';
         }
 
         // Helper function to show errors
@@ -264,10 +282,19 @@
             element.style.display = 'block';
         }
 
-        // Check if user is already logged in
-        if (localStorage.getItem('shroud_currentUser')) {
-            window.location.href = '/dashboard.html';
-        }
+        // Check URL hash to show correct form
+        window.addEventListener('DOMContentLoaded', () => {
+            if (window.location.hash === '#signup') {
+                showForm('signup');
+            } else if (window.location.hash === '#login') {
+                showForm('login');
+            }
+            
+            // Check if user is already logged in
+            if (localStorage.getItem('shroud_currentUser')) {
+                // window.location.href = '/dashboard.html';
+            }
+        });
     </script>
 </body>
 </html>
