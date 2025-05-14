@@ -5,14 +5,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Merchant Dashboard - SHROUD</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <script src="https://cdn.jsdelivr.net/npm/qrcodejs/qrcode.min.js"></script>
     <style>
         :root {
-            --primary: #0a0a0a;
-            --secondary: #fff;
-            --accent: #10ff80;
-            --background: #111;
-            --success: #00d4a1;
+            --primary: #000000;
+            --secondary: #ffffff;
+            --background: #111111;
+            --card-bg: #1a1a1a;
+            --border-color: #333333;
         }
 
         * {
@@ -38,7 +37,7 @@
         .sidebar {
             background: var(--background);
             padding: 2rem;
-            border-right: 1px solid #333;
+            border-right: 1px solid var(--border-color);
         }
 
         .sidebar-header {
@@ -56,10 +55,18 @@
             border-radius: 6px;
             cursor: pointer;
             transition: all 0.3s ease;
+            color: var(--secondary);
+            text-decoration: none;
+            display: block;
+        }
+
+        .nav-item:hover {
+            background: rgba(255,255,255,0.1);
         }
 
         .nav-item.active {
-            background: rgba(255,255,255,0.1);
+            background: rgba(255,255,255,0.2);
+            font-weight: bold;
         }
 
         /* Main Content */
@@ -82,60 +89,23 @@
         }
 
         .stat-card {
-            background: var(--background);
+            background: var(--card-bg);
             padding: 1.5rem;
             border-radius: 8px;
-            border: 1px solid #333;
+            border: 1px solid var(--border-color);
         }
 
         .stat-value {
             font-size: 2rem;
             font-weight: bold;
-            color: var(--accent);
-        }
-
-        /* Checkout Generator */
-        .generator-form {
-            background: var(--background);
-            padding: 2rem;
-            border-radius: 8px;
-            margin-bottom: 2rem;
-        }
-
-        .form-group {
-            margin-bottom: 1.5rem;
-        }
-
-        input, select {
-            width: 100%;
-            padding: 0.8rem;
-            background: #1a1a1a;
-            border: 1px solid #333;
             color: var(--secondary);
-            border-radius: 4px;
-        }
-
-        .generated-link {
-            background: #1a1a1a;
-            padding: 1rem;
-            border-radius: 4px;
-            margin-top: 1rem;
-            word-break: break-all;
-        }
-
-        .qr-code {
-            margin: 1rem 0;
-            padding: 1rem;
-            background: white;
-            border-radius: 4px;
-            width: 150px;
         }
 
         /* Customers Table */
         .customers-table {
             width: 100%;
             border-collapse: collapse;
-            background: var(--background);
+            background: var(--card-bg);
             border-radius: 8px;
             overflow: hidden;
         }
@@ -144,20 +114,25 @@
         .customers-table td {
             padding: 1rem;
             text-align: left;
-            border-bottom: 1px solid #333;
+            border-bottom: 1px solid var(--border-color);
         }
 
         .customers-table th {
-            background: #1a1a1a;
+            background: var(--background);
         }
 
         .logout-btn {
-            background: var(--accent);
+            background: var(--secondary);
             color: var(--primary);
             border: none;
             padding: 0.5rem 1rem;
             border-radius: 4px;
             cursor: pointer;
+            font-weight: bold;
+        }
+
+        .logout-btn:hover {
+            opacity: 0.9;
         }
     </style>
 </head>
@@ -170,17 +145,18 @@
                 <p>Merchant Dashboard</p>
             </div>
             <nav class="sidebar-nav">
-                <div class="nav-item active">Checkout Generator</div>
-                <div class="nav-item">Customers</div>
-                <div class="nav-item">Analytics</div>
-                <div class="nav-item">Settings</div>
+                <a href="dashboard.html" class="nav-item active">Dashboard</a>
+                <a href="checkout.html" class="nav-item">Checkout Generator</a>
+                <a href="customers.html" class="nav-item">Customers</a>
+                <a href="analytics.html" class="nav-item">Analytics</a>
+                <a href="settings.html" class="nav-item">Settings</a>
             </nav>
         </div>
 
         <!-- Main Content -->
         <div class="main-content">
             <div class="header">
-                <h1>Checkout Generator</h1>
+                <h1>Dashboard</h1>
                 <button class="logout-btn" onclick="logout()">Log Out</button>
             </div>
 
@@ -200,32 +176,8 @@
                 </div>
             </div>
 
-            <!-- Checkout Generator -->
-            <div class="generator-form">
-                <div class="form-group">
-                    <label>Product Name</label>
-                    <input type="text" id="productName">
-                </div>
-                <div class="form-group">
-                    <label>Amount</label>
-                    <input type="number" id="productAmount">
-                </div>
-                <div class="form-group">
-                    <label>Currency</label>
-                    <select id="currencySelect">
-                        <option value="btc">Bitcoin (BTC)</option>
-                        <option value="xmr">Monero (XMR)</option>
-                        <option value="eth">Ethereum (ETH)</option>
-                        <option value="sol">Solana (SOL)</option>
-                    </select>
-                </div>
-                <button class="logout-btn" onclick="generateCheckout()">Generate Payment Link</button>
-                <div class="generated-link" id="generatedLink"></div>
-                <div class="qr-code" id="qrCode"></div>
-            </div>
-
-            <!-- Customers Table -->
-            <h2 style="margin: 2rem 0">Recent Customers</h2>
+            <!-- Recent Customers Table -->
+            <h2 style="margin: 2rem 0 1rem 0">Recent Customers</h2>
             <table class="customers-table">
                 <thead>
                     <tr>
@@ -236,7 +188,36 @@
                     </tr>
                 </thead>
                 <tbody id="customersList">
-                    <!-- Customers will be populated here -->
+                    <tr>
+                        <td>user1@example.com</td>
+                        <td>@user1</td>
+                        <td>0.1336 BTC</td>
+                        <td>5/13/2025</td>
+                    </tr>
+                    <tr>
+                        <td>user2@example.com</td>
+                        <td>@user2</td>
+                        <td>0.5090 BTC</td>
+                        <td>5/13/2025</td>
+                    </tr>
+                    <tr>
+                        <td>user3@example.com</td>
+                        <td>@user3</td>
+                        <td>0.2137 BTC</td>
+                        <td>5/13/2025</td>
+                    </tr>
+                    <tr>
+                        <td>user4@example.com</td>
+                        <td>@user4</td>
+                        <td>0.2604 BTC</td>
+                        <td>5/13/2025</td>
+                    </tr>
+                    <tr>
+                        <td>user5@example.com</td>
+                        <td>@user5</td>
+                        <td>0.4739 BTC</td>
+                        <td>5/13/2025</td>
+                    </tr>
                 </tbody>
             </table>
         </div>
@@ -249,104 +230,35 @@
             window.location.href = 'auth.html#login';
         }
 
-        // Demo data
-        let customers = JSON.parse(localStorage.getItem('shroud_customers')) || [];
-        let payments = JSON.parse(localStorage.getItem('shroud_payments')) || [];
-
-        function generateCheckout() {
-            const product = document.getElementById('productName').value;
-            const amount = document.getElementById('productAmount').value;
-            const currency = document.getElementById('currencySelect').value;
-
-            // Generate payment address (demo)
-            const address = generateAddress(currency);
-            
-            // Create checkout link
-            const checkoutLink = `${window.location.origin}/checkout.html?product=${encodeURIComponent(product)}&amount=${amount}&currency=${currency}&address=${address}`;
-            
-            // Display generated link
-            const linkElement = document.getElementById('generatedLink');
-            linkElement.innerHTML = `
-                Payment Link: <a href="${checkoutLink}" target="_blank">${checkoutLink}</a>
-            `;
-
-            // Generate QR Code
-            const qrElement = document.getElementById('qrCode');
-            qrElement.innerHTML = '';
-            new QRCode(qrElement, {
-                text: `${currency}:${address}?amount=${amount}`,
-                width: 128,
-                height: 128
-            });
-        }
-
-        function generateAddress(currency) {
-            const prefixes = {
-                btc: 'bc1q',
-                eth: '0x',
-                xmr: '4',
-                sol: 'So1'
-            };
-            return prefixes[currency] + Math.random().toString(36).substr(2, 10);
-        }
-
         function logout() {
             localStorage.removeItem('shroud_currentUser');
             window.location.href = 'auth.html#login';
         }
 
-        // Update stats
+        // Update stats from localStorage
         function updateStats() {
-            document.querySelector('[data-stat="earnings"]').textContent = 
-                payments.reduce((sum, p) => sum + p.amount, 0).toFixed(2);
-            document.querySelector('[data-stat="customers"]').textContent = customers.length;
-            document.querySelector('[data-stat="average"]').textContent = 
-                (payments.reduce((sum, p) => sum + p.amount, 0) / (payments.length || 1)).toFixed(2);
+            const payments = JSON.parse(localStorage.getItem('shroud_payments')) || [];
+            const customers = JSON.parse(localStorage.getItem('shroud_customers')) || [];
+            
+            const todayEarnings = payments
+                .filter(p => new Date(p.date).toDateString() === new Date().toDateString())
+                .reduce((sum, p) => sum + p.amount, 0)
+                .toFixed(2);
+                
+            const totalEarnings = payments
+                .reduce((sum, p) => sum + p.amount, 0)
+                .toFixed(2);
+                
+            const avgPayment = payments.length > 0 
+                ? (totalEarnings / payments.length).toFixed(2) 
+                : '0.00';
+            
+            document.querySelectorAll('.stat-card')[0].querySelector('.stat-value').textContent = `$${todayEarnings}`;
+            document.querySelectorAll('.stat-card')[1].querySelector('.stat-value').textContent = customers.length;
+            document.querySelectorAll('.stat-card')[2].querySelector('.stat-value').textContent = `$${avgPayment}`;
         }
 
-        // Simulate payment detection
-        setInterval(() => {
-            // In real implementation, check blockchain for payments
-            if (Math.random() > 0.8) { // 20% chance of new payment
-                const newCustomer = {
-                    email: `user${customers.length + 1}@example.com`,
-                    contact: `@user${customers.length + 1}`,
-                    amount: (Math.random() * 0.5 + 0.1).toFixed(4),
-                    date: new Date().toLocaleDateString()
-                };
-                
-                customers.push(newCustomer);
-                payments.push({ amount: parseFloat(newCustomer.amount) });
-                
-                localStorage.setItem('shroud_customers', JSON.stringify(customers));
-                localStorage.setItem('shroud_payments', JSON.stringify(payments));
-                
-                // Update table
-                const row = document.createElement('tr');
-                row.innerHTML = `
-                    <td>${newCustomer.email}</td>
-                    <td>${newCustomer.contact}</td>
-                    <td>${newCustomer.amount}</td>
-                    <td>${newCustomer.date}</td>
-                `;
-                document.getElementById('customersList').prepend(row);
-                
-                updateStats();
-            }
-        }, 5000); // Check every 5 seconds
-
         // Initial load
-        customers.forEach(customer => {
-            const row = document.createElement('tr');
-            row.innerHTML = `
-                <td>${customer.email}</td>
-                <td>${customer.contact}</td>
-                <td>${customer.amount}</td>
-                <td>${customer.date}</td>
-            `;
-            document.getElementById('customersList').appendChild(row);
-        });
-
         updateStats();
     </script>
 </body>
