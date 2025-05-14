@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SHROUD - Private Crypto Payments</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --glow: rgba(255,255,255,0.15);
+            --transition: all 0.3s ease;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: #000;
+            color: #fff;
+            font-family: 'Courier New', monospace;
+            min-height: 100vh;
+            overflow-x: hidden;
+            line-height: 1.6;
+        }
+
+        .terminal-effect {
+            text-shadow: 0 0 8px var(--glow);
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        /* Navigation */
+        nav {
+            padding: 2rem 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #333;
+        }
+
+        .logo {
+            font-size: 1.8rem;
+            font-weight: bold;
+            letter-spacing: -1px;
+            position: relative;
+            cursor: pointer;
+        }
+
+        .logo::after {
+            content: '▋';
+            animation: blink 1s infinite;
+            margin-left: 4px;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 2rem;
+            align-items: center;
+        }
+
+        .nav-links a {
+            color: #fff;
+            text-decoration: none;
+            position: relative;
+            padding: 0.5rem 0;
+            font-weight: 500;
+        }
+
+        .nav-links a::after {
+            content: '';
+            position: absolute;
+            width: 0;
+            height: 1px;
+            background: #fff;
+            bottom: 0;
+            left: 0;
+            transition: var(--transition);
+        }
+
+        .nav-links a:hover::after {
+            width: 100%;
+        }
+
+        .auth-buttons {
+            display: flex;
+            gap: 1rem;
+        }
+
+        .btn {
+            padding: 0.6rem 1.4rem;
+            border-radius: 4px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+            border: none;
+        }
+
+        .btn-primary {
+            background: #fff;
+            color: #000;
+        }
+
+        .btn-outline {
+            background: transparent;
+            color: #fff;
+            border: 1px solid #fff;
+        }
+
+        .btn-outline:hover {
+            background: rgba(255,255,255,0.1);
+        }
+
+        /* Hero Section */
+        .hero {
+            text-align: center;
+            padding: 8rem 0;
+            position: relative;
+        }
+
+        .scanline {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(to bottom, 
+                transparent 50%, 
+                rgba(255,255,255,0.05) 51%, 
+                transparent 51%);
+            pointer-events: none;
+            animation: scan 8s linear infinite;
+            opacity: 0.5;
+        }
+
+        h1 {
+            font-size: clamp(2.5rem, 5vw, 4rem);
+            margin-bottom: 2rem;
+            opacity: 0;
+            transform: translateY(20px);
+            animation: fadeUp 0.8s forwards;
+            text-transform: uppercase;
+            letter-spacing: 4px;
+            line-height: 1.2;
+        }
+
+        .subhead {
+            font-size: 1.4rem;
+            color: #aaa;
+            margin-bottom: 3rem;
+            max-width: 800px;
+            margin-left: auto;
+            margin-right: auto;
+            opacity: 0;
+            animation: fadeUp 0.8s 0.2s forwards;
+        }
+
+        /* Features */
+        .features {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            padding: 5rem 0;
+        }
+
+        .feature-card {
+            padding: 2rem;
+            border: 1px solid #333;
+            position: relative;
+            overflow: hidden;
+            transition: var(--transition);
+        }
+
+        .feature-card:hover {
+            border-color: #fff;
+            transform: translateY(-5px);
+        }
+
+        .feature-card::before {
+            content: '>';
+            position: absolute;
+            left: 1rem;
+            opacity: 0.5;
+        }
+
+        .feature-icon {
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
+            color: #fff;
+        }
+
+        /* Animations */
+        @keyframes blink {
+            50% { opacity: 0; }
+        }
+
+        @keyframes scan {
+            0% { transform: translateY(-100%); }
+            100% { transform: translateY(100%); }
+        }
+
+        @keyframes fadeUp {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Mobile Menu */
+        .mobile-menu-btn {
+            display: none;
+            background: none;
+            border: none;
+            color: #fff;
+            font-size: 1.5rem;
+            cursor: pointer;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .nav-links {
+                display: none;
+                position: absolute;
+                top: 100px;
+                left: 0;
+                width: 100%;
+                background: #000;
+                padding: 2rem;
+                flex-direction: column;
+                gap: 1.5rem;
+                border-bottom: 1px solid #333;
+            }
+
+            .nav-links.active {
+                display: flex;
+            }
+
+            .mobile-menu-btn {
+                display: block;
+            }
+
+            .hero {
+                padding: 4rem 0;
+            }
+
+            .auth-buttons {
+                flex-direction: column;
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <nav class="container">
+        <div class="logo terminal-effect">SHROUD</div>
+        
+        <button class="mobile-menu-btn" id="mobileMenuBtn">
+            <i class="fas fa-bars"></i>
+        </button>
+        
+        <div class="nav-links" id="navLinks">
+            <a href="#features">Features</a>
+            <a href="#contact">Contact</a>
+            <div class="auth-buttons">
+                <button class="btn btn-outline" onclick="location.href='/login'">Login</button>
+                <button class="btn btn-primary" onclick="location.href='/signup'">Sign Up</button>
+            </div>
+        </div>
+    </nav>
+
+    <section class="hero">
+        <div class="scanline"></div>
+        <div class="container">
+            <h1 class="terminal-effect">Untraceable Transactions</h1>
+            <p class="subhead terminal-effect">
+                Zero-KYC cryptocurrency payments with automatic data destruction.
+                Accept Bitcoin, Monero, Ethereum and more with 1% fees.
+            </p>
+            <div class="cta-buttons">
+                <button class="btn btn-primary" onclick="location.href='/signup'">Get Started</button>
+            </div>
+        </div>
+    </section>
+
+    <section class="container" id="features">
+        <div class="features">
+            <div class="feature-card">
+                <div class="feature-icon"><i class="fas fa-user-secret"></i></div>
+                <h3>No Identity Checks</h3>
+                <p>We never ask for personal information. Start accepting payments in seconds.</p>
+            </div>
+            
+            <div class="feature-card">
+                <div class="feature-icon"><i class="fas fa-trash"></i></div>
+                <h3>Auto Data Deletion</h3>
+                <p>All transaction data permanently erased after 72 hours.</p>
+            </div>
+
+            <div class="feature-card">
+                <div class="feature-icon"><i class="fas fa-paint-brush"></i></div>
+                <h3>Custom Checkouts</h3>
+                <p>Brand your payment pages with custom domains and styling.</p>
+            </div>
+        </div>
+    </section>
+
+    <section class="container" id="contact">
+        <div class="feature-card" style="text-align: center; max-width: 800px; margin: 0 auto;">
+            <h3>Need Assistance?</h3>
+            <p>Contact our anonymous support team via encrypted channels</p>
+            <a href="https://t.me/shroudpay_support" target="_blank" style="color: #fff; text-decoration: none; margin-top: 1rem; display: inline-block;">
+                <i class="fab fa-telegram"></i> @shroudpay_support
+            </a>
+        </div>
+    </section>
+
+    <script>
+        // Mobile menu toggle
+        document.getElementById('mobileMenuBtn').addEventListener('click', function() {
+            document.getElementById('navLinks').classList.toggle('active');
+        });
+
+        // Animate elements when they come into view
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('fade-in');
+                    observer.unobserve(entry.target);
+                }
+            });
+        }, { threshold: 0.1 });
+
+        document.querySelectorAll('.feature-card').forEach(el => {
+            observer.observe(el);
+        });
+
+        // Console art
+        console.log('%cSHROUD PROTOCOL ACTIVATED', 'color: #0f0; font-size: 18px; font-weight: bold;');
+        console.log('%cAll connections encrypted | No tracking enabled', 'color: #888;');
+    </script>
+</body>
+</html>
