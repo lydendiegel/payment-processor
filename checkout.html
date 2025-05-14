@@ -1,0 +1,554 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Checkout - GhostPay</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/qrcodejs/qrcode.min.js"></script>
+    <style>
+        :root {
+            --primary: #635bff;
+            --secondary: #0a2540;
+            --success: #00d4a1;
+            --warning: #ff9a2e;
+            --error: #ff4d4f;
+            --light-bg: #f6f9fc;
+            --card-shadow: 0 4px 6px rgba(0,0,0,0.05);
+        }
+
+        body {
+            background-color: #f8fafc;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            color: #0a2540;
+        }
+
+        .checkout-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem 1rem;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .brand-logo {
+            height: 40px;
+            margin-bottom: 1rem;
+        }
+
+        .checkout-card {
+            background: white;
+            border-radius: 12px;
+            box-shadow: var(--card-shadow);
+            overflow: hidden;
+            margin-bottom: 2rem;
+        }
+
+        .checkout-steps {
+            display: flex;
+            border-bottom: 1px solid #e6ebf1;
+        }
+
+        .checkout-step {
+            flex: 1;
+            padding: 1rem;
+            text-align: center;
+            font-weight: 500;
+            color: #7b8793;
+            position: relative;
+        }
+
+        .checkout-step.active {
+            color: var(--primary);
+        }
+
+        .checkout-step.completed {
+            color: var(--success);
+        }
+
+        .checkout-step.active:after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: var(--primary);
+        }
+
+        .checkout-body {
+            padding: 2rem;
+        }
+
+        .payment-method {
+            display: flex;
+            align-items: center;
+            padding: 1rem;
+            border: 1px solid #e6ebf1;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .payment-method:hover {
+            border-color: var(--primary);
+        }
+
+        .payment-method.active {
+            border-color: var(--primary);
+            background-color: rgba(99, 91, 255, 0.05);
+        }
+
+        .payment-method-icon {
+            width: 32px;
+            height: 32px;
+            margin-right: 1rem;
+        }
+
+        .payment-instructions {
+            background-color: var(--light-bg);
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin-top: 1.5rem;
+        }
+
+        .amount-display {
+            font-size: 2rem;
+            font-weight: 600;
+            margin: 1rem 0;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .crypto-symbol {
+            font-size: 1.2rem;
+            color: var(--secondary);
+            font-weight: 500;
+        }
+
+        .wallet-address-container {
+            display: flex;
+            align-items: center;
+            background: white;
+            border: 1px solid #e6ebf1;
+            border-radius: 6px;
+            padding: 0.75rem;
+            margin: 1rem 0;
+        }
+
+        .wallet-address {
+            font-family: monospace;
+            word-break: break-all;
+            flex: 1;
+            font-size: 0.9rem;
+        }
+
+        .copy-btn {
+            background: none;
+            border: none;
+            color: var(--primary);
+            cursor: pointer;
+            padding: 0.5rem;
+            margin-left: 0.5rem;
+        }
+
+        .qr-code {
+            width: 120px;
+            height: 120px;
+            margin: 1rem auto;
+            padding: 0.5rem;
+            background: white;
+            border: 1px solid #e6ebf1;
+            border-radius: 6px;
+        }
+
+        .payment-status {
+            padding: 1rem;
+            border-radius: 6px;
+            margin: 1.5rem 0;
+            text-align: center;
+            font-weight: 500;
+        }
+
+        .status-pending {
+            background-color: #fff8e6;
+            color: #d48806;
+        }
+
+        .status-success {
+            background-color: #f6ffed;
+            color: #389e0d;
+        }
+
+        .status-error {
+            background-color: #fff2f0;
+            color: #cf1322;
+        }
+
+        .network-warning {
+            background-color: #fff7e6;
+            color: #d46b08;
+            padding: 1rem;
+            border-radius: 6px;
+            margin: 1rem 0;
+            font-size: 0.9rem;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid #e6ebf1;
+            border-radius: 6px;
+            font-size: 1rem;
+        }
+
+        .btn-primary {
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            padding: 1rem;
+            border-radius: 6px;
+            font-size: 1rem;
+            font-weight: 500;
+            width: 100%;
+            cursor: pointer;
+            transition: opacity 0.2s;
+        }
+
+        .btn-primary:hover {
+            opacity: 0.9;
+        }
+
+        @media (max-width: 768px) {
+            .checkout-container {
+                padding: 1rem;
+            }
+            
+            .checkout-body {
+                padding: 1.5rem;
+            }
+            
+            .amount-display {
+                font-size: 1.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="checkout-container">
+        <div class="header">
+            <img src="https://via.placeholder.com/150x40?text=Merchant+Logo" alt="Merchant Logo" class="brand-logo" id="merchantLogo">
+        </div>
+
+        <div class="checkout-card">
+            <div class="checkout-steps">
+                <div class="checkout-step active">1. Information</div>
+                <div class="checkout-step">2. Payment</div>
+                <div class="checkout-step">3. Complete</div>
+            </div>
+
+            <div class="checkout-body">
+                <!-- Customer Information Form -->
+                <div id="customerInfoForm">
+                    <h2 class="mb-4">Customer Information</h2>
+                    
+                    <div class="form-group">
+                        <label class="form-label">Email Address</label>
+                        <input type="email" class="form-control" id="customerEmail" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">Shipping Address</label>
+                        <input type="text" class="form-control" id="shippingAddress">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">Contact Method (Telegram/WhatsApp/Phone)</label>
+                        <input type="text" class="form-control" id="contactMethod">
+                    </div>
+                    
+                    <button class="btn-primary mt-3" onclick="proceedToPayment()">Continue to Payment</button>
+                </div>
+
+                <!-- Payment Selection -->
+                <div id="paymentSelection" style="display: none;">
+                    <h2 class="mb-4">Select Payment Method</h2>
+                    
+                    <div class="network-warning">
+                        <i class="fas fa-exclamation-triangle"></i> Transactions sent to/from smart contracts are not accepted
+                    </div>
+                    
+                    <div class="payment-method" onclick="selectPaymentMethod('btc')">
+                        <img src="https://cryptologos.cc/logos/bitcoin-btc-logo.png" class="payment-method-icon" alt="Bitcoin">
+                        <div>
+                            <h4>Bitcoin (BTC)</h4>
+                            <small>Bitcoin Network</small>
+                        </div>
+                    </div>
+                    
+                    <div class="payment-method" onclick="selectPaymentMethod('eth')">
+                        <img src="https://cryptologos.cc/logos/ethereum-eth-logo.png" class="payment-method-icon" alt="Ethereum">
+                        <div>
+                            <h4>Ethereum (ETH)</h4>
+                            <small>Ethereum Network</small>
+                        </div>
+                    </div>
+                    
+                    <div class="payment-method" onclick="selectPaymentMethod('xmr')">
+                        <img src="https://cryptologos.cc/logos/monero-xmr-logo.png" class="payment-method-icon" alt="Monero">
+                        <div>
+                            <h4>Monero (XMR)</h4>
+                            <small>Monero Network</small>
+                        </div>
+                    </div>
+                    
+                    <div class="payment-method" onclick="selectPaymentMethod('sol')">
+                        <img src="https://cryptologos.cc/logos/solana-sol-logo.png" class="payment-method-icon" alt="Solana">
+                        <div>
+                            <h4>Solana (SOL)</h4>
+                            <small>Solana Network</small>
+                        </div>
+                    </div>
+                    
+                    <button class="btn-primary mt-3" onclick="goBackToInfo()">Back</button>
+                </div>
+
+                <!-- Payment Instructions -->
+                <div id="paymentInstructions" style="display: none;">
+                    <h2 class="mb-4">Complete Payment</h2>
+                    
+                    <div class="payment-instructions">
+                        <p>Send:</p>
+                        <div class="amount-display">
+                            <span id="paymentAmount">25.0000</span>
+                            <span class="crypto-symbol" id="cryptoSymbol">ETH</span>
+                        </div>
+                        <p>on <span id="networkName">Ethereum Mainnet</span></p>
+                        <p>To this address:</p>
+                        
+                        <div class="wallet-address-container">
+                            <div class="wallet-address" id="walletAddress">0x9543aceb7871aeded1b364d7b1477f6fdba0ce38</div>
+                            <button class="copy-btn" onclick="copyAddress()">
+                                <i class="far fa-copy"></i>
+                            </button>
+                        </div>
+                        
+                        <div class="qr-code" id="qrCode"></div>
+                        
+                        <div class="payment-status status-pending" id="paymentStatus">
+                            <i class="fas fa-circle-notch fa-spin"></i> Waiting for payment confirmation...
+                        </div>
+                    </div>
+                    
+                    <button class="btn-primary mt-3" onclick="goBackToPayment()">Back</button>
+                </div>
+                
+                <!-- Order Summary -->
+                <div id="orderSummary" style="display: none;">
+                    <h2 class="mb-4">Order Complete</h2>
+                    
+                    <div class="payment-status status-success">
+                        <i class="fas fa-check-circle"></i> Payment confirmed!
+                    </div>
+                    
+                    <div class="alert alert-light mt-4">
+                        <h4>Order Details</h4>
+                        <p><strong>Product:</strong> <span id="summaryProduct">Premium Subscription</span></p>
+                        <p><strong>Amount:</strong> <span id="summaryAmount">0.5 ETH</span></p>
+                        <p><strong>Transaction ID:</strong> <span id="transactionId">0x123...456</span></p>
+                    </div>
+                    
+                    <p class="mt-4">A receipt has been sent to <strong id="summaryEmail">user@example.com</strong></p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Configuration
+        const config = {
+            amount: 25.00,
+            currency: 'eth',
+            product: 'Premium Service',
+            description: 'Monthly subscription',
+            merchantLogo: 'https://via.placeholder.com/150x40?text=Merchant+Logo'
+        };
+        
+        // State
+        let currentStep = 'info';
+        let selectedPaymentMethod = '';
+        let paymentAddress = '';
+        let paymentDetails = {};
+        
+        // Initialize
+        document.getElementById('merchantLogo').src = config.merchantLogo;
+        
+        // Step Navigation
+        function proceedToPayment() {
+            // Validate form
+            const email = document.getElementById('customerEmail').value;
+            if (!email) {
+                alert('Please enter your email address');
+                return;
+            }
+            
+            // Save customer info
+            paymentDetails = {
+                email,
+                shippingAddress: document.getElementById('shippingAddress').value,
+                contactMethod: document.getElementById('contactMethod').value
+            };
+            
+            // Show payment selection
+            document.getElementById('customerInfoForm').style.display = 'none';
+            document.getElementById('paymentSelection').style.display = 'block';
+            currentStep = 'payment';
+            updateStepIndicator();
+        }
+        
+        function selectPaymentMethod(method) {
+            selectedPaymentMethod = method;
+            
+            // Remove active class from all methods
+            document.querySelectorAll('.payment-method').forEach(el => {
+                el.classList.remove('active');
+            });
+            
+            // Add active class to selected method
+            event.currentTarget.classList.add('active');
+            
+            // Generate payment address (in real app this would come from backend)
+            paymentAddress = generateCryptoAddress(method);
+            
+            // Update payment instructions
+            document.getElementById('paymentAmount').textContent = config.amount.toFixed(4);
+            document.getElementById('cryptoSymbol').textContent = method.toUpperCase();
+            document.getElementById('networkName').textContent = getNetworkName(method);
+            document.getElementById('walletAddress').textContent = paymentAddress;
+            
+            // Generate QR code
+            const qrElement = document.getElementById('qrCode');
+            qrElement.innerHTML = '';
+            const qrCode = new QRCode(qrElement, {
+                text: `${method}:${paymentAddress}?amount=${config.amount}`,
+                width: 120,
+                height: 120
+            });
+            
+            // Show payment instructions
+            document.getElementById('paymentSelection').style.display = 'none';
+            document.getElementById('paymentInstructions').style.display = 'block';
+            currentStep = 'instructions';
+            updateStepIndicator();
+            
+            // Start payment monitoring (simulated)
+            simulatePaymentDetection();
+        }
+        
+        function goBackToInfo() {
+            document.getElementById('paymentSelection').style.display = 'none';
+            document.getElementById('customerInfoForm').style.display = 'block';
+            currentStep = 'info';
+            updateStepIndicator();
+        }
+        
+        function goBackToPayment() {
+            document.getElementById('paymentInstructions').style.display = 'none';
+            document.getElementById('paymentSelection').style.display = 'block';
+            currentStep = 'payment';
+            updateStepIndicator();
+        }
+        
+        function updateStepIndicator() {
+            document.querySelectorAll('.checkout-step').forEach((step, index) => {
+                step.classList.remove('active', 'completed');
+                
+                if (index < ['info', 'payment', 'instructions'].indexOf(currentStep)) {
+                    step.classList.add('completed');
+                } else if (index === ['info', 'payment', 'instructions'].indexOf(currentStep)) {
+                    step.classList.add('active');
+                }
+            });
+        }
+        
+        // Helper Functions
+        function generateCryptoAddress(currency) {
+            const prefixes = {
+                btc: 'bc1q',
+                eth: '0x',
+                xmr: '4',
+                sol: 'So1'
+            };
+            
+            const length = {
+                btc: 42,
+                eth: 40,
+                xmr: 95,
+                sol: 44
+            };
+            
+            const prefix = prefixes[currency] || '';
+            const randomChars = Math.random().toString(36).substr(2, length[currency] - prefix.length);
+            return prefix + randomChars;
+        }
+        
+        function getNetworkName(currency) {
+            const networks = {
+                btc: 'Bitcoin Mainnet',
+                eth: 'Ethereum Mainnet',
+                xmr: 'Monero Mainnet',
+                sol: 'Solana Mainnet'
+            };
+            return networks[currency] || `${currency.toUpperCase()} Network`;
+        }
+        
+        function copyAddress() {
+            navigator.clipboard.writeText(paymentAddress);
+            alert('Address copied to clipboard!');
+        }
+        
+        // Payment Detection Simulation
+        function simulatePaymentDetection() {
+            setTimeout(() => {
+                // Update status
+                document.getElementById('paymentStatus').className = 'payment-status status-success';
+                document.getElementById('paymentStatus').innerHTML = '<i class="fas fa-check-circle"></i> Payment confirmed!';
+                
+                // Show order summary
+                setTimeout(() => {
+                    document.getElementById('paymentInstructions').style.display = 'none';
+                    
+                    // Update order summary
+                    document.getElementById('summaryProduct').textContent = config.product;
+                    document.getElementById('summaryAmount').textContent = 
+                        `${config.amount} ${selectedPaymentMethod.toUpperCase()}`;
+                    document.getElementById('summaryEmail').textContent = paymentDetails.email;
+                    document.getElementById('transactionId').textContent = 
+                        `${paymentAddress.substring(0, 5)}...${paymentAddress.substring(paymentAddress.length - 4)}`;
+                    
+                    document.getElementById('orderSummary').style.display = 'block';
+                    document.querySelectorAll('.checkout-step').forEach(step => {
+                        step.classList.add('completed');
+                    });
+                }, 1500);
+            }, 5000); // Simulate payment confirmation after 5 seconds
+        }
+    </script>
+</body>
+</html>
